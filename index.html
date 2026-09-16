@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#f1e6d5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ระบายสี">
+<title>Little Art Studio · ระบายสีแสนสนุก</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#BFE0F5;
+  font-family:-apple-system,"Noto Sans Thai",sans-serif;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+
+#sky{position:absolute;inset:0;z-index:0}
+
+#topbar{position:relative;z-index:2;flex:0 0 auto;height:11vh;min-height:52px;
+  display:flex;align-items:center;justify-content:center;gap:2.2vh}
+.topbtn{width:9vh;height:9vh;min-width:46px;min-height:46px;border:none;background:none;
+  padding:0;display:block;transition:transform .09s}
+.topbtn:active{transform:scale(.9)}
+.topbtn[disabled]{opacity:.32}
+.topbtn svg{width:100%;height:100%;display:block}
+#btnPhoto{width:7vh;height:7vh;min-width:38px;min-height:38px;opacity:.85}
+
+#stage{position:relative;z-index:2;flex:1 1 auto;display:flex;align-items:center;
+  justify-content:center;min-height:0;padding:.5vh 1vh}
+#card{position:relative;border-radius:14px;overflow:hidden;background:#fff;
+  box-shadow:0 6px 18px rgba(30,60,90,.22)}
+#card canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#input{position:absolute;inset:0;z-index:2;touch-action:none}
+#stickers{position:absolute;inset:0;z-index:3;overflow:hidden;pointer-events:none}
+
+.sticker{position:absolute;left:0;top:0;transform-origin:50% 50%;will-change:transform;pointer-events:auto;touch-action:none}
+.sticker img{width:100%;height:100%;display:block;pointer-events:none}
+.sticker.sel{outline:3px dashed rgba(40,90,140,.75);outline-offset:2px;border-radius:6px}
+#stickerKill{position:absolute;z-index:6;width:56px;height:56px;border:none;padding:0;
+  background:none;display:none}
+#stickerKill.on{display:block}
+
+.row{position:relative;z-index:2;flex:0 0 auto;display:flex;align-items:center;
+  justify-content:space-around;gap:.6vh;padding:0 1.2vh}
+#rowColor{height:11vh;min-height:48px}
+#rowTex{height:13vh;min-height:56px}
+#rowTool{height:18vh;min-height:76px;border-radius:16px 16px 0 0;
+  background:linear-gradient(#EFD7AE,#CFAC7C);padding:0 1vh}
+
+.swatch{border:none;background:none;padding:0;border-radius:50%;
+  width:9.5vh;height:9.5vh;min-width:44px;min-height:44px;transition:transform .1s}
+.swatch:active{transform:scale(.88)}
+.swatch.on{transform:scale(1.12)}
+.swatch svg,.swatch canvas{width:100%;height:100%;display:block;border-radius:50%}
+
+.tool{border:none;background:none;padding:0;width:15%;height:100%;
+  display:flex;align-items:flex-end;justify-content:center;transition:transform .1s}
+.tool:active{transform:scale(.9)}
+.tool svg{width:100%;height:100%;display:block}
+.tool.on{transform:translateY(-6%) scale(1.06)}
+
+#page{border:none;background:#F5C24A;border-radius:50%;
+  width:7.5vh;height:7.5vh;min-width:36px;min-height:36px;color:#5B3D06;
+  font-size:3.4vh;line-height:1;font-weight:500}
+
+#flash{position:fixed;inset:0;z-index:20;pointer-events:none;display:none;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.55)}
+#flash.on{display:flex}
+#flash svg{width:34vh;height:34vh}
+
+#sheet{position:fixed;inset:0;z-index:30;display:none;background:rgba(20,40,60,.55)}
+#sheet.on{display:flex;align-items:center;justify-content:center}
+#sheetBox{background:#fff;border-radius:18px;padding:18px;width:min(560px,88vw);
+  max-height:86vh;overflow:auto}
+#sheetBox h2{font-size:17px;font-weight:500;margin-bottom:12px;color:#26404F}
+.mrow{display:flex;flex-wrap:wrap;gap:10px}
+.mbtn{flex:1 1 46%;min-height:56px;border:1.5px solid #C8D6E0;background:#F7FBFD;
+  border-radius:12px;font-size:15px;color:#22384A;padding:10px}
+.mbtn:active{background:#E4F0F8}
+.mbtn.danger{border-color:#EBB4B4;background:#FDF3F3;color:#8C2C2C}
+#gal{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+#gal img{width:100%;border-radius:8px;border:1px solid #DDE6EC;display:block}
+.pickgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.pickgrid button{border:1.5px solid #D4E1EA;background:#fff;border-radius:10px;padding:4px;aspect-ratio:4/3}
+.pickgrid svg{width:100%;height:100%;display:block}
+#rot{position:fixed;inset:0;z-index:40;background:#BFE0F5;display:none;
+  align-items:center;justify-content:center;font-size:22px;color:#245068;text-align:center;padding:30px}
+@media (orientation:portrait){#rot{display:flex}}
+
+:root{--ink:#554b43;--mint:#719c8a;--cream:#fffaf0} html,body{background:#f3e9d9;color:var(--ink);font-family:'Trebuchet MS',Tahoma,sans-serif}button{cursor:pointer;color:inherit;font:inherit}button:focus-visible{outline:3px solid #498c79;outline-offset:4px}#sky{display:none}
+#app{display:grid;grid-template-columns:190px minmax(0,1fr) 210px;grid-template-rows:82px minmax(0,1fr) 132px;gap:18px;padding:18px 26px 20px;background:radial-gradient(ellipse at 60% 25%,#fff9eb99,transparent 65%),repeating-linear-gradient(2deg,#ad805007 0 1px,transparent 1px 7px),#f1e6d5}
+#topbar{grid-column:1/-1;grid-row:1;height:auto;min-height:0;justify-content:flex-end;gap:10px;border-bottom:1px solid #c9b79d60;padding-bottom:14px}.brand{margin-right:auto;display:flex;align-items:center;gap:12px}.brand-mark{background:#e7ad87;border:3px solid #fff5e6;border-radius:18px;box-shadow:0 3px 0 #be896650;width:48px;height:48px;display:grid;place-items:center;font-size:28px}.brand strong{display:block;font-size:23px;letter-spacing:-.7px}.brand small{display:block;font-size:11px;letter-spacing:2px;margin-top:5px;color:#9b8170}.topbtn,#btnPhoto{width:43px;height:43px;min-width:43px;min-height:43px;padding:5px;border-radius:14px;background:#fffaf2;box-shadow:0 3px 0 #d7c8b5;opacity:1}.softbtn{min-height:42px;border:1px solid #d9cbb7;border-radius:13px;padding:8px 14px;background:#fffaf1;font-size:12px;font-weight:bold;box-shadow:0 3px 0 #d7c8b560}.softbtn.active{background:#dceadd;border-color:#9ab39b}
+#stage{grid-column:2;grid-row:2;padding:30px 12px 20px;min-width:0;background:#d7c0a14a;border:1px solid #d3b89555;border-radius:22px;box-shadow:inset 0 2px 10px #8b62300b}#stage:before{content:'YOUR LITTLE MASTERPIECE';position:absolute;top:12px;font-size:9px;letter-spacing:2.4px;color:#a18870}#card{border-radius:5px;box-shadow:0 2px 2px #8a6e5430,0 13px 24px #8a6e5425;outline:8px solid #fffcf3}#card:after{content:'';position:absolute;inset:0;pointer-events:none;z-index:4;opacity:.19;background-image:url('paper.svg');mix-blend-mode:multiply}
+.row{padding:17px 14px;gap:10px;border:1px solid #e3d6c5;background:#fffaf0;border-radius:21px;box-shadow:0 4px 0 #d7c8b544;justify-content:center;align-content:start}.row:before{width:100%;flex-shrink:0;font-size:11px;letter-spacing:1.8px;font-weight:bold;color:#917a64;text-align:left;margin-bottom:6px}#rowColor{grid-column:1;grid-row:2;height:auto;min-height:0;flex-wrap:wrap;overflow:auto}#rowColor:before{content:'01 / COLOR PALETTE'}#rowTex{grid-column:3;grid-row:2;height:auto;min-height:0;flex-wrap:wrap;overflow:auto}#rowTex:before{content:'02 / MAGIC TEXTURES'}.swatch{position:relative;width:59px;height:59px;min-width:0;min-height:0;flex:0 0 59px;margin:0 3px 17px;box-shadow:0 3px 6px #856e4c20;background:#f4ede1;border:4px solid #f4ede1}.swatch.on{outline:2px solid #729987;outline-offset:3px;transform:none}.swatch:after{content:attr(data-label);position:absolute;top:calc(100% + 7px);left:50%;transform:translateX(-50%);white-space:nowrap;font-size:10px;color:#7e6b59}#rowTex .swatch{border-radius:13px;width:63px;height:63px;flex-basis:63px;margin-bottom:20px}#rowTex .swatch canvas{border-radius:8px}#page{width:100%;height:29px;min-height:29px;border-radius:9px;font-size:12px;background:#eee4d2;color:#756149}
+#rowTool{grid-column:1/-1;grid-row:3;height:auto;min-height:0;background:repeating-linear-gradient(0deg,#ba894009 0 1px,transparent 1px 4px),linear-gradient(#eed8b9,#e6c69b);border:1px solid #d3b48d;border-radius:22px;padding:8px 24px 17px;gap:16px;box-shadow:inset 0 2px 0 #fff9,0 5px 0 #bd95693a}.tool{position:relative;flex:1;width:auto;max-width:145px;height:100%;border-radius:14px;background:#b0865910;box-shadow:inset 0 2px 5px #9d703b12;align-items:center;padding:0 0 12px}.tool svg{height:90px;filter:drop-shadow(2px 4px 2px #785b3b25)}.tool:after{content:attr(data-label);position:absolute;bottom:0;font-size:11px;font-weight:bold;color:#7c6148}.tool.on{transform:translateY(-3px);background:#fff7e780;box-shadow:0 4px 9px #8a67311a,inset 0 0 0 2px #fff8}#sheetBox{background:#fffaf0;border:5px solid #fff;border-radius:23px;box-shadow:0 20px 70px #33241740}#sheetBox h2{color:#67513d}.demo-art{width:100%;display:block;border-radius:14px;margin:12px 0}.note{font-size:12px;line-height:1.7;color:#8b7765}.close-sheet{float:right;border:none;background:#efe1ce;border-radius:50%;width:32px;height:32px}.demo-swatches{display:flex;gap:10px;justify-content:center}.demo-swatches canvas{width:64px;height:64px;border-radius:12px}#rot{display:none!important}
+@media(max-width:1000px){#app{grid-template-columns:144px minmax(0,1fr) 156px;gap:12px;padding:12px;grid-template-rows:65px minmax(0,1fr) 108px}.row{padding:12px 6px;gap:9px}.row:before{font-size:9px;letter-spacing:.7px}.swatch{width:46px;height:46px;flex-basis:46px;margin:0 4px 15px}#rowTex .swatch{width:49px;height:49px;flex-basis:49px;margin-bottom:17px}.brand strong{font-size:18px}.brand small{font-size:8px}.tool svg{height:76px}.softbtn{padding:8px;font-size:11px}}
+@media(max-width:650px) and (orientation:portrait){#app{grid-template-columns:1fr 1fr;grid-template-rows:60px minmax(160px,1fr) 94px 110px 88px;gap:8px;padding:8px}#topbar{gap:5px;padding-bottom:6px}.brand{gap:5px}.brand-mark{display:none}.brand strong{font-size:14px}.brand small{font-size:7px;letter-spacing:1px}.topbtn,#btnPhoto{width:32px;height:36px;min-width:32px;min-height:36px}.softbtn{padding:5px;font-size:10px}#stage{grid-column:1/-1;grid-row:2}#rowColor{grid-column:1/-1;grid-row:3;flex-wrap:nowrap;justify-content:flex-start;align-items:center;padding:8px 10px;gap:10px}.row:before{display:none}.swatch{flex-basis:42px;width:42px;height:42px;margin:0 1px 13px}#rowTex{grid-column:1/-1;grid-row:4;flex-wrap:nowrap;justify-content:flex-start;align-items:center;padding:8px 10px}#rowTex .swatch{flex-basis:48px;width:48px;height:48px}#page{min-width:54px;width:54px}#rowTool{grid-column:1/-1;grid-row:5;padding:3px 6px 9px;gap:6px}.tool svg{height:60px}.tool:after{font-size:9px}}
+@media(max-height:620px) and (orientation:landscape){#app{grid-template-rows:52px minmax(0,1fr) 85px;gap:8px;padding:8px 14px}.brand strong{font-size:18px}.tool svg{height:60px}#rowTool{padding:2px 12px 13px}.row{padding-top:8px}.row:before{margin-bottom:0}.swatch{height:40px;width:40px;flex-basis:40px}#rowTex .swatch{height:42px;width:42px;flex-basis:42px}.brand-mark{height:38px;width:38px}}
+.row,#sheetBox{touch-action:pan-x pan-y}#sheetBox button{touch-action:manipulation}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <svg id="sky" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <rect width="100" height="100" fill="#BFE0F5"/>
+    <ellipse cx="14" cy="26" rx="13" ry="6" fill="#fff" opacity=".55"/>
+    <ellipse cx="86" cy="40" rx="12" ry="5.5" fill="#fff" opacity=".5"/>
+    <ellipse cx="24" cy="62" rx="10" ry="4.5" fill="#fff" opacity=".4"/>
+  </svg>
+
+  <div id="topbar"><div class="brand"><span class="brand-mark">✿</span><div><strong>Little Art Studio</strong><small>A LITTLE MESS, A LOT OF MAGIC</small></div></div><button class="softbtn" id="btnDemo">ดูตัวอย่าง ✧</button><button class="softbtn" id="btnSound" aria-pressed="false" title="เปิดเสียงเอฟเฟกต์และเสียงพูดภาษาอังกฤษ">เสียง: ปิด</button>
+    <button class="topbtn" id="btnUndo" aria-label="ย้อนกลับ"></button>
+    <button class="topbtn" id="btnRedo" aria-label="ทำซ้ำ"></button>
+    <button class="topbtn" id="btnSave" aria-label="บันทึก"></button>
+    <button class="topbtn" id="btnPhoto" aria-label="เมนูผู้ปกครอง"></button>
+  </div>
+
+  <div id="stage">
+    <div id="card">
+      <canvas id="cBg"></canvas>
+      <canvas id="cFill"></canvas>
+      <canvas id="cPaint"></canvas>
+      <canvas id="cLine"></canvas>
+      <div id="stickers"></div>
+      <div id="input"></div>
+      <button id="stickerKill" aria-label="ลบสติกเกอร์"></button>
+    </div>
+  </div>
+
+  <div class="row" id="rowColor"></div>
+  <div class="row" id="rowTex"></div>
+  <div class="row" id="rowTool"></div>
+</div>
+
+<div id="flash" aria-hidden="true">
+  <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#2FB57F"/>
+  <path d="M30 52 L44 66 L71 36" stroke="#fff" stroke-width="10" fill="none"
+    stroke-linecap="round" stroke-linejoin="round"/></svg>
+</div>
+
+<div id="sheet"><div id="sheetBox"></div></div>
+<div id="rot">หมุน iPad เป็นแนวนอน<br>เพื่อเริ่มระบายสี</div>
+
+<input type="file" id="filePick" accept="image/*" hidden>
+<script>
+(function(){
+"use strict";
+// ข้อมูลศิลป์ทั้งหมดของแอป
+// เพิ่มลาย เพิ่มสติกเกอร์ เพิ่มภาพระบายสี ทำได้ที่ไฟล์นี้ไฟล์เดียว
+
+const COLORS = [
+  '#E8342A', '#F5901E', '#F7CB2F', '#5FB63B', '#2E86D8',
+  '#7B5FD4', '#EE72A8', '#8A5A2B', '#FFFFFF', '#2B2B2B'
+];
+
+function shade(hex, f) {
+  const n = parseInt(hex.slice(1), 16);
+  let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  if (f >= 0) { r += (255 - r) * f; g += (255 - g) * f; b += (255 - b) * f; }
+  else { r *= (1 + f); g *= (1 + f); b *= (1 + f); }
+  return `rgb(${r | 0},${g | 0},${b | 0})`;
+}
+
+// ---------------------------------------------------------------- หัวแปรง
+// mask ถูกเรนเดอร์เป็นภาพขาวดำแล้วย้อมสีตอนใช้งาน
+const TIPS = {
+  round(c, s) {
+    const g = c.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    g.addColorStop(0, '#fff'); g.addColorStop(.72, '#fff');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = g; c.fillRect(0, 0, s, s);
+  },
+  soft(c, s) {
+    const g = c.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    g.addColorStop(0, 'rgba(255,255,255,.85)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = g; c.fillRect(0, 0, s, s);
+  },
+  chalk(c, s) {
+    c.fillStyle = '#fff';
+    for (let i = 0; i < 260; i++) {
+      const a = Math.random() * 6.283, r = Math.pow(Math.random(), .55) * s / 2;
+      c.globalAlpha = .5 + Math.random() * .5;
+      c.fillRect(s / 2 + Math.cos(a) * r, s / 2 + Math.sin(a) * r, 1.6, 1.6);
+    }
+    c.globalAlpha = 1;
+  },
+  spray(c, s) {
+    c.fillStyle = '#fff';
+    for (let i = 0; i < 150; i++) {
+      const a = Math.random() * 6.283, r = Math.pow(Math.random(), .4) * s / 2;
+      c.globalAlpha = .25 + Math.random() * .45;
+      c.beginPath();
+      c.arc(s / 2 + Math.cos(a) * r, s / 2 + Math.sin(a) * r, .9, 0, 6.283);
+      c.fill();
+    }
+    c.globalAlpha = 1;
+  },
+  crayon(c, s) {
+    const g = c.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    g.addColorStop(0, 'rgba(255,255,255,.95)');
+    g.addColorStop(.8, 'rgba(255,255,255,.55)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = g; c.fillRect(0, 0, s, s);
+    c.globalCompositeOperation = 'destination-out';
+    for (let i = 0; i < 90; i++) {
+      c.globalAlpha = Math.random() * .5;
+      c.fillRect(Math.random() * s, Math.random() * s, 2.4, 1.4);
+    }
+    c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
+  },
+  star(c, s) {
+    c.fillStyle = '#fff'; c.beginPath();
+    const R = s / 2 * .92, r = R * .45;
+    for (let i = 0; i < 10; i++) {
+      const a = -1.5708 + i * 0.6283, rr = i % 2 ? r : R;
+      c[i ? 'lineTo' : 'moveTo'](s / 2 + Math.cos(a) * rr, s / 2 + Math.sin(a) * rr);
+    }
+    c.closePath(); c.fill();
+  },
+  heart(c, s) {
+    c.fillStyle = '#fff'; const k = s / 100;
+    c.beginPath();
+    c.moveTo(50 * k, 84 * k);
+    c.bezierCurveTo(4 * k, 52 * k, 18 * k, 12 * k, 50 * k, 36 * k);
+    c.bezierCurveTo(82 * k, 12 * k, 96 * k, 52 * k, 50 * k, 84 * k);
+    c.fill();
+  },
+  sparkle(c, s) {
+    c.fillStyle = '#fff'; const h = s / 2;
+    c.beginPath();
+    c.moveTo(h, 0); c.quadraticCurveTo(h * 1.12, h * .88, s, h);
+    c.quadraticCurveTo(h * 1.12, h * 1.12, h, s);
+    c.quadraticCurveTo(h * .88, h * 1.12, 0, h);
+    c.quadraticCurveTo(h * .88, h * .88, h, 0);
+    c.fill();
+  }
+};
+
+// ---------------------------------------------------------------- ลายพื้นผิว
+// tintable:true คือลายที่เปลี่ยนสีตามสีที่เด็กเลือกได้
+const P = [];
+const add = (id, tintable, draw) => P.push({ id, tintable, draw });
+
+add('grass', true, (c, s, col) => {
+  c.fillStyle = shade(col, .42); c.fillRect(0, 0, s, s);
+  c.strokeStyle = shade(col, -.28); c.lineWidth = s * .045; c.lineCap = 'round';
+  for (let i = 0; i < 9; i++) {
+    const x = (i * 7.3 % 1) * s, y = (i * 3.7 % 1) * s;
+    c.beginPath(); c.moveTo(x, y + s * .12); c.lineTo(x + s * .03, y - s * .05); c.stroke();
+  }
+});
+add('dots', true, (c, s, col) => {
+  c.fillStyle = shade(col, .5); c.fillRect(0, 0, s, s);
+  c.fillStyle = shade(col, -.1);
+  [[.25, .25], [.75, .75], [.75, .25], [.25, .75]].forEach(([x, y]) => {
+    c.beginPath(); c.arc(x * s, y * s, s * .11, 0, 6.283); c.fill();
+  });
+});
+add('hearts', true, (c, s, col) => {
+  c.fillStyle = shade(col, .55); c.fillRect(0, 0, s, s);
+  c.fillStyle = shade(col, -.05);
+  const h = (cx, cy, r) => {
+    c.beginPath(); c.moveTo(cx, cy + r);
+    c.bezierCurveTo(cx - r * 1.5, cy - r * .3, cx - r * .5, cy - r * 1.3, cx, cy - r * .3);
+    c.bezierCurveTo(cx + r * .5, cy - r * 1.3, cx + r * 1.5, cy - r * .3, cx, cy + r);
+    c.fill();
+  };
+  h(s * .3, s * .3, s * .13); h(s * .74, s * .72, s * .13);
+});
+add('stars', true, (c, s, col) => {
+  c.fillStyle = shade(col, .5); c.fillRect(0, 0, s, s);
+  c.fillStyle = shade(col, -.15);
+  const st = (cx, cy, R) => {
+    c.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = -1.5708 + i * .6283, rr = i % 2 ? R * .45 : R;
+      c[i ? 'lineTo' : 'moveTo'](cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
+    }
+    c.closePath(); c.fill();
+  };
+  st(s * .3, s * .3, s * .16); st(s * .74, s * .74, s * .12);
+});
+add('bubbles', true, (c, s, col) => {
+  c.fillStyle = shade(col, .3); c.fillRect(0, 0, s, s);
+  c.strokeStyle = 'rgba(255,255,255,.9)'; c.lineWidth = s * .05;
+  [[.28, .3, .17], [.72, .68, .13], [.8, .24, .08]].forEach(([x, y, r]) => {
+    c.beginPath(); c.arc(x * s, y * s, r * s, 0, 6.283); c.stroke();
+  });
+});
+add('snow', true, (c, s, col) => {
+  c.fillStyle = shade(col, .35); c.fillRect(0, 0, s, s);
+  c.strokeStyle = '#fff'; c.lineWidth = s * .05; c.lineCap = 'round';
+  [[.3, .3, .11], [.72, .7, .09]].forEach(([x, y, r]) => {
+    for (let i = 0; i < 3; i++) {
+      const a = i * 1.047;
+      c.beginPath();
+      c.moveTo(x * s - Math.cos(a) * r * s, y * s - Math.sin(a) * r * s);
+      c.lineTo(x * s + Math.cos(a) * r * s, y * s + Math.sin(a) * r * s);
+      c.stroke();
+    }
+  });
+});
+add('sand', true, (c, s, col) => {
+  c.fillStyle = shade(col, .45); c.fillRect(0, 0, s, s);
+  c.fillStyle = shade(col, -.2);
+  for (let i = 0; i < 42; i++) {
+    const x = (i * 17.3) % s, y = (i * 29.7) % s;
+    c.beginPath(); c.arc(x, y, s * .022, 0, 6.283); c.fill();
+  }
+});
+add('leaves', true, (c, s, col) => {
+  c.fillStyle = shade(col, .42); c.fillRect(0, 0, s, s);
+  c.fillStyle = shade(col, -.22);
+  const lf = (x, y, r, rot) => {
+    c.save(); c.translate(x, y); c.rotate(rot); c.beginPath();
+    c.moveTo(0, -r); c.quadraticCurveTo(r, 0, 0, r);
+    c.quadraticCurveTo(-r, 0, 0, -r); c.fill(); c.restore();
+  };
+  lf(s * .3, s * .32, s * .16, .5); lf(s * .74, s * .7, s * .13, -.7);
+});
+add('flowers', true, (c, s, col) => {
+  c.fillStyle = shade(col, .55); c.fillRect(0, 0, s, s);
+  const fl = (x, y, r) => {
+    c.fillStyle = shade(col, -.05);
+    for (let i = 0; i < 5; i++) {
+      const a = i * 1.2566;
+      c.beginPath(); c.arc(x + Math.cos(a) * r * .62, y + Math.sin(a) * r * .62, r * .46, 0, 6.283); c.fill();
+    }
+    c.fillStyle = shade(col, .75);
+    c.beginPath(); c.arc(x, y, r * .34, 0, 6.283); c.fill();
+  };
+  fl(s * .32, s * .32, s * .2); fl(s * .76, s * .74, s * .15);
+});
+add('rain', true, (c, s, col) => {
+  c.fillStyle = shade(col, .4); c.fillRect(0, 0, s, s);
+  c.strokeStyle = shade(col, -.2); c.lineWidth = s * .05; c.lineCap = 'round';
+  for (let i = 0; i < 6; i++) {
+    const x = (i * 11.7) % s, y = (i * 19.3) % s;
+    c.beginPath(); c.moveTo(x, y); c.lineTo(x - s * .06, y + s * .16); c.stroke();
+  }
+});
+add('zigzag', true, (c, s, col) => {
+  c.fillStyle = shade(col, .6); c.fillRect(0, 0, s, s);
+  c.strokeStyle = shade(col, -.1); c.lineWidth = s * .07;
+  for (let r = 0; r < 3; r++) {
+    c.beginPath();
+    for (let i = 0; i <= 4; i++) {
+      const x = i * s / 4, y = s * (.2 + r * .3) + (i % 2 ? s * .1 : 0);
+      c[i ? 'lineTo' : 'moveTo'](x, y);
+    }
+    c.stroke();
+  }
+});
+add('checks', true, (c, s, col) => {
+  c.fillStyle = shade(col, .62); c.fillRect(0, 0, s, s);
+  c.fillStyle = shade(col, -.05);
+  c.fillRect(0, 0, s / 2, s / 2); c.fillRect(s / 2, s / 2, s / 2, s / 2);
+});
+add('sparkles', true, (c, s, col) => {
+  c.fillStyle = shade(col, .25); c.fillRect(0, 0, s, s);
+  c.fillStyle = '#fff';
+  const sp = (x, y, r) => {
+    c.beginPath(); c.moveTo(x, y - r);
+    c.quadraticCurveTo(x + r * .18, y - r * .18, x + r, y);
+    c.quadraticCurveTo(x + r * .18, y + r * .18, x, y + r);
+    c.quadraticCurveTo(x - r * .18, y + r * .18, x - r, y);
+    c.quadraticCurveTo(x - r * .18, y - r * .18, x, y - r);
+    c.fill();
+  };
+  sp(s * .3, s * .3, s * .18); sp(s * .74, s * .7, s * .12);
+});
+add('waves', true, (c, s, col) => {
+  c.fillStyle = shade(col, .48); c.fillRect(0, 0, s, s);
+  c.strokeStyle = shade(col, -.12); c.lineWidth = s * .06; c.lineCap = 'round';
+  for (let r = 0; r < 3; r++) {
+    c.beginPath(); c.moveTo(0, s * (.25 + r * .3));
+    c.quadraticCurveTo(s * .25, s * (.13 + r * .3), s * .5, s * (.25 + r * .3));
+    c.quadraticCurveTo(s * .75, s * (.37 + r * .3), s, s * (.25 + r * .3));
+    c.stroke();
+  }
+});
+add('fluff', true, (c, s, col) => {
+  c.fillStyle = shade(col, .5); c.fillRect(0, 0, s, s);
+  c.strokeStyle = shade(col, -.18); c.lineWidth = s * .045; c.lineCap = 'round';
+  for (let i = 0; i < 10; i++) {
+    const x = (i * 13.1) % s, y = (i * 23.9) % s;
+    c.beginPath(); c.arc(x, y, s * .08, i, i + 3.6); c.stroke();
+  }
+});
+add('rainbow', false, (c, s) => {
+  ['#E8342A', '#F5901E', '#F7CB2F', '#5FB63B', '#2E86D8', '#7B5FD4'].forEach((k, i) => {
+    c.fillStyle = k; c.fillRect(0, i * s / 6, s, s / 6 + 1);
+  });
+});
+add('night', false, (c, s) => {
+  c.fillStyle = '#2A2560'; c.fillRect(0, 0, s, s);
+  c.fillStyle = '#FFE07A';
+  [[.2, .25, .05], [.7, .6, .04], [.45, .8, .03], [.85, .2, .03]].forEach(([x, y, r]) => {
+    c.beginPath(); c.arc(x * s, y * s, r * s, 0, 6.283); c.fill();
+  });
+});
+add('sky', false, (c, s) => {
+  c.fillStyle = '#79BEEC'; c.fillRect(0, 0, s, s);
+  c.fillStyle = '#fff';
+  c.beginPath(); c.ellipse(s * .3, s * .32, s * .22, s * .12, 0, 0, 6.283); c.fill();
+  c.beginPath(); c.ellipse(s * .76, s * .74, s * .2, s * .11, 0, 0, 6.283); c.fill();
+});
+add('candy', false, (c, s) => {
+  c.fillStyle = '#FFF2F7'; c.fillRect(0, 0, s, s);
+  c.strokeStyle = '#F27DA8'; c.lineWidth = s * .12;
+  for (let i = -1; i < 3; i++) {
+    c.beginPath(); c.moveTo(i * s / 2, 0); c.lineTo(i * s / 2 + s, s); c.stroke();
+  }
+});
+add('fire', false, (c, s) => {
+  c.fillStyle = '#F7CB2F'; c.fillRect(0, 0, s, s);
+  c.fillStyle = '#F0621E';
+  c.beginPath(); c.arc(s * .3, s * .34, s * .2, 0, 6.283); c.fill();
+  c.beginPath(); c.arc(s * .74, s * .72, s * .16, 0, 6.283); c.fill();
+});
+
+
+add('linen',true,(c,s,col)=>{c.fillStyle=shade(col,.56);c.fillRect(0,0,s,s);for(let i=0;i<s;i+=3){c.fillStyle=i%2?'#fff7':shade(col,.14);c.fillRect(i,0,1,s);c.fillStyle='#5a382b22';c.fillRect(0,i,s,1)}});
+add('woodgrain',true,(c,s,col)=>{c.fillStyle=shade(col,.42);c.fillRect(0,0,s,s);for(let i=-8;i<s+8;i+=3){c.strokeStyle=i%2?shade(col,.2):shade(col,-.12);c.globalAlpha=.35;c.lineWidth=.7;c.beginPath();for(let y=0;y<=s;y++){let x=i+Math.sin(y*.13+i)*1.8;c.lineTo(x,y)}c.stroke()}c.globalAlpha=1});
+add('watercolor',true,(c,s,col)=>{c.fillStyle=shade(col,.56);c.fillRect(0,0,s,s);for(let i=0;i<45;i++){let x=(i*23.71)%s,y=(i*37.31)%s,r=4+i%9;let g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,shade(col,.1));g.addColorStop(1,'transparent');c.globalAlpha=.15;c.fillStyle=g;c.fillRect(x-r,y-r,r*2,r*2)}c.globalAlpha=1});
+
+const PATTERNS = P;
+
+// ---------------------------------------------------------------- หมึกที่ออกจากแปรง
+// หน้าแรกคือหัวแปรงพื้นฐาน หน้าถัดไปคือลายพื้นผิว
+const INKS = [
+  { id: 'round', kind: 'tip', tip: 'round' },
+  { id: 'soft', kind: 'tip', tip: 'soft', alpha: .5 },
+  { id: 'crayon', kind: 'tip', tip: 'crayon' },
+  { id: 'chalk', kind: 'tip', tip: 'chalk', scatter: .2 },
+  { id: 'spray', kind: 'tip', tip: 'spray', spacing: .16, alpha: .55 },
+  { id: 'glow', kind: 'tip', tip: 'soft', alpha: .32, size: 1.7 },
+  { id: 'star', kind: 'tip', tip: 'star', spacing: .8, scatter: .5, spin: true },
+  { id: 'heart', kind: 'tip', tip: 'heart', spacing: .85, scatter: .5, spin: true },
+  { id: 'sparkle', kind: 'tip', tip: 'sparkle', spacing: .7, scatter: .6, spin: true },
+  { id: 'rain-t', kind: 'tip', tip: 'round', spacing: .9, scatter: .7, size: .5 },
+  { id: 'rbow', kind: 'tip', tip: 'round', rainbow: true },
+  { id: 'rbow-s', kind: 'tip', tip: 'star', rainbow: true, spacing: .8, scatter: .5, spin: true },
+  ...PATTERNS.map(p => ({ id: 'p-' + p.id, kind: 'pattern', pattern: p.id }))
+];
+
+// ---------------------------------------------------------------- สติกเกอร์
+const sv = (b) => `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">${b}</svg>`;
+const STICKERS = [
+  sv('<path d="M50 6 60 38 94 38 66 58 77 92 50 71 23 92 34 58 6 38 40 38Z" fill="#FFCE28" stroke="#D89A00" stroke-width="4" stroke-linejoin="round"/>'),
+  sv('<path d="M50 88C6 58 14 18 50 36 86 18 94 58 50 88Z" fill="#F2617A" stroke="#C13A54" stroke-width="4" stroke-linejoin="round"/>'),
+  sv('<g stroke="#C8477E" stroke-width="3"><circle cx="50" cy="24" r="17" fill="#F98BC0"/><circle cx="76" cy="43" r="17" fill="#F98BC0"/><circle cx="66" cy="74" r="17" fill="#F98BC0"/><circle cx="34" cy="74" r="17" fill="#F98BC0"/><circle cx="24" cy="43" r="17" fill="#F98BC0"/><circle cx="50" cy="50" r="13" fill="#FFE07A"/></g>'),
+  sv('<g fill="#fff" stroke="#8FB6D4" stroke-width="4"><circle cx="34" cy="58" r="20"/><circle cx="58" cy="46" r="24"/><circle cx="76" cy="60" r="17"/><rect x="30" y="60" width="50" height="18" rx="9"/></g>'),
+  sv('<circle cx="50" cy="50" r="24" fill="#FFC42B" stroke="#E09000" stroke-width="4"/><g stroke="#E09000" stroke-width="6" stroke-linecap="round"><path d="M50 8v12M50 80v12M8 50h12M80 50h12M20 20l9 9M71 71l9 9M80 20l-9 9M29 71l-9 9"/></g>'),
+  sv('<g fill="none" stroke-width="9" stroke-linecap="round"><path d="M14 78a36 36 0 0172 0" stroke="#E8342A"/><path d="M27 78a23 23 0 0146 0" stroke="#F7CB2F"/><path d="M40 78a10 10 0 0120 0" stroke="#2E86D8"/></g>'),
+  sv('<g stroke="#1F4E7A" stroke-width="4" stroke-linejoin="round"><path d="M12 66V56q0-6 7-6h10l10-14h26l7 14h11q7 0 7 7v9Z" fill="#4FA3E8"/><circle cx="31" cy="68" r="11" fill="#37474F"/><circle cx="71" cy="68" r="11" fill="#37474F"/></g>'),
+  sv('<g stroke="#3F5A73" stroke-width="4" stroke-linejoin="round"><path d="M50 8v10" /><circle cx="50" cy="8" r="5" fill="#F2617A"/><rect x="26" y="18" width="48" height="34" rx="9" fill="#9BC7E8"/><circle cx="40" cy="35" r="6" fill="#2B3A46"/><circle cx="60" cy="35" r="6" fill="#2B3A46"/><rect x="32" y="56" width="36" height="30" rx="7" fill="#7FB2D8"/><rect x="14" y="60" width="14" height="9" rx="4" fill="#7FB2D8"/><rect x="72" y="60" width="14" height="9" rx="4" fill="#7FB2D8"/></g>'),
+  sv('<g stroke="#B23A2A" stroke-width="4" stroke-linejoin="round"><path d="M50 6c14 12 20 30 20 46v14H30V52c0-16 6-34 20-46Z" fill="#F0F4F7"/><circle cx="50" cy="40" r="10" fill="#63B7E8"/><path d="M30 56 14 76l16-4ZM70 56l16 20-16-4Z" fill="#E8544A"/><path d="M40 66h20l-10 24Z" fill="#F5901E"/></g>'),
+  sv('<g stroke="#8A5A2B" stroke-width="4" stroke-linejoin="round"><ellipse cx="50" cy="62" rx="32" ry="24" fill="#F5B942"/><circle cx="50" cy="32" r="20" fill="#F5B942"/><path d="M33 18l4 12M67 18l-4 12" /><circle cx="42" cy="32" r="4" fill="#4A3520"/><circle cx="58" cy="32" r="4" fill="#4A3520"/><path d="M46 42h8" /></g>'),
+  sv('<g stroke="#2F6B4F" stroke-width="4" stroke-linejoin="round"><ellipse cx="50" cy="56" rx="14" ry="26" fill="#7ED0A0"/><path d="M36 42C18 22 8 40 22 52 8 64 20 82 36 68ZM64 42C82 22 92 40 78 52 92 64 80 82 64 68Z" fill="#A8E8C4"/><circle cx="44" cy="40" r="3" fill="#2F6B4F"/><circle cx="56" cy="40" r="3" fill="#2F6B4F"/></g>'),
+  sv('<g stroke="#7A5C1E" stroke-width="4" stroke-linejoin="round"><circle cx="50" cy="52" r="26" fill="#FFD98A"/><path d="M28 30l-8-14 18 4M72 30l8-14-18 4"/><circle cx="41" cy="48" r="4" fill="#4A3520"/><circle cx="59" cy="48" r="4" fill="#4A3520"/><path d="M44 62q6 6 12 0"/></g>')
+];
+
+// ---------------------------------------------------------------- ภาพลายเส้น
+// พิกัดอยู่ในกรอบ 200 x 150 แล้วถูกขยายให้เต็มผืนผ้าใบ
+const LINEARTS = [
+  {
+    id: 'car', paths: [
+      'M22 104V88q0-9 10-9h20l16-20h44l12 20h34q10 0 10 10v15Z',
+      'M40 104a16 16 0 1032 0 16 16 0 10-32 0Z', 'M50 104a6 6 0 1012 0 6 6 0 10-12 0Z',
+      'M126 104a16 16 0 1032 0 16 16 0 10-32 0Z', 'M136 104a6 6 0 1012 0 6 6 0 10-12 0Z',
+      'M62 77l12-15h24v15Z', 'M106 62h18l9 15h-27Z', 'M160 88h10'
+    ]
+  },
+  {
+    id: 'race', paths: [
+      'M16 100v-8q0-7 8-7h22l14-16h40l10 16h48q8 0 8 8v7Z',
+      'M74 85l10-12h22l7 12Z', 'M150 62h22v14h-22Z',
+      'M40 100a15 15 0 1030 0 15 15 0 10-30 0Z', 'M49 100a6 6 0 1012 0 6 6 0 10-12 0Z',
+      'M128 100a15 15 0 1030 0 15 15 0 10-30 0Z', 'M137 100a6 6 0 1012 0 6 6 0 10-12 0Z',
+      'M20 92h20', 'M96 46a8 8 0 1016 0 8 8 0 10-16 0Z'
+    ]
+  },
+  {
+    id: 'truck', paths: [
+      'M14 100V44h80v56Z', 'M94 100V62h30l22 24v14Z', 'M100 68h20l14 16h-34Z',
+      'M32 100a15 15 0 1030 0 15 15 0 10-30 0Z', 'M41 100a6 6 0 1012 0 6 6 0 10-12 0Z',
+      'M104 100a15 15 0 1030 0 15 15 0 10-30 0Z', 'M113 100a6 6 0 1012 0 6 6 0 10-12 0Z',
+      'M24 56h60', 'M24 72h60', 'M146 90h12'
+    ]
+  },
+  {
+    id: 'rocket', paths: [
+      'M100 12c16 16 24 38 24 58v22H76V70c0-20 8-42 24-58Z',
+      'M100 52a13 13 0 100 26 13 13 0 100-26Z',
+      'M76 76 52 104l24-6Z', 'M124 76l24 28-24-6Z',
+      'M88 92h24l-12 30Z', 'M84 108h32'
+    ]
+  },
+  {
+    id: 'robot', paths: [
+      'M100 14v12', 'M100 10a6 6 0 100 12 6 6 0 100-12Z',
+      'M64 26h72v42H64Z', 'M80 40a8 8 0 100 16 8 8 0 100-16Z',
+      'M120 40a8 8 0 100 16 8 8 0 100-16Z', 'M86 60h28',
+      'M72 72h56v42H72Z', 'M44 78h24v16H44Z', 'M132 78h24v16h-24Z',
+      'M82 114v20h14v-20Z', 'M104 114v20h14v-20Z'
+    ]
+  },
+  {
+    id: 'ufo', paths: [
+      'M100 30a30 22 0 000 44 30 22 0 000-44Z',
+      'M36 78a64 18 0 00128 0 64 18 0 00-128 0Z',
+      'M56 84a7 7 0 1014 0 7 7 0 10-14 0Z', 'M93 88a7 7 0 1014 0 7 7 0 10-14 0Z',
+      'M130 84a7 7 0 1014 0 7 7 0 10-14 0Z',
+      'M76 96l-16 22', 'M124 96l16 22', 'M100 100v22'
+    ]
+  },
+  {
+    id: 'plane', paths: [
+      'M28 76q0-14 22-16l84-8q22-2 32 10-10 12-32 12l-84 8q-22-2-22-6Z',
+      'M62 62 46 30h14l28 30Z', 'M62 78l-16 30h14l28-28Z',
+      'M144 60l16-18h12l-8 20Z',
+      'M84 62a5 5 0 100 10 5 5 0 100-10Z', 'M104 60a5 5 0 100 10 5 5 0 100-10Z',
+      'M124 58a5 5 0 100 10 5 5 0 100-10Z'
+    ]
+  },
+  {
+    id: 'train', paths: [
+      'M20 104V56h44v48Z', 'M64 104V38h48q10 0 10 10v56Z',
+      'M74 48h28v18H74Z', 'M34 30h16v26H34Z', 'M30 24h24v8H30Z',
+      'M122 104V60h56v44Z', 'M134 70h16v16h-16Z', 'M156 70h14v16h-14Z',
+      'M34 104a11 11 0 1022 0 11 11 0 10-22 0Z',
+      'M84 104a11 11 0 1022 0 11 11 0 10-22 0Z',
+      'M136 104a11 11 0 1022 0 11 11 0 10-22 0Z'
+    ]
+  },
+  {
+    id: 'digger', paths: [
+      'M18 104V72h56v32Z', 'M30 44h34v28H30Z', 'M36 50h22v18H36Z',
+      'M74 78l38-34', 'M110 40l16 6-34 38Z', 'M92 84l14 16h34l-8-22Z',
+      'M22 106a18 18 0 1036 0 18 18 0 10-36 0Z', 'M32 106a8 8 0 1016 0 8 8 0 10-16 0Z',
+      'M108 108a12 12 0 1024 0 12 12 0 10-24 0Z'
+    ]
+  },
+  {
+    id: 'cutebot', paths: [
+      'M100 12v10', 'M100 8a5 5 0 100 10 5 5 0 100-10Z',
+      'M60 22h80q10 0 10 10v40q0 10-10 10H60q-10 0-10-10V32q0-10 10-10Z',
+      'M78 44a10 10 0 100 20 10 10 0 100-20Z',
+      'M122 44a10 10 0 100 20 10 10 0 100-20Z',
+      'M84 82h32v22H84Z', 'M60 88h24v12H60Z', 'M116 88h24v12h-24Z',
+      'M70 104a14 14 0 1028 0 14 14 0 10-28 0Z',
+      'M102 104a14 14 0 1028 0 14 14 0 10-28 0Z'
+    ]
+  }
+];
+
+// ไอคอนทั้งหมดเป็น SVG ที่สร้างจากโค้ด ไม่มีไฟล์ภาพ
+// ถ้าวันหนึ่งอยากเปลี่ยนไปใช้ภาพ PNG 3D ให้แก้เฉพาะไฟล์นี้ไฟล์เดียว
+
+let uid = 0;
+const g3 = (id, a, b, c, d) =>
+  `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="0">
+   <stop offset="0" stop-color="${a}"/><stop offset=".3" stop-color="${b}"/>
+   <stop offset=".62" stop-color="${c}"/><stop offset="1" stop-color="${d}"/></linearGradient>`;
+
+const SHADOW = (u) =>
+  `<radialGradient id="sh${u}"><stop offset="0" stop-color="#4A3418" stop-opacity=".42"/>
+   <stop offset="1" stop-color="#4A3418" stop-opacity="0"/></radialGradient>`;
+
+function mix(hex, f) {
+  const n = parseInt((hex[0] === '#' ? hex.slice(1) : hex), 16);
+  let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  if (f >= 0) { r += (255 - r) * f; g += (255 - g) * f; b += (255 - b) * f; }
+  else { r *= (1 + f); g *= (1 + f); b *= (1 + f); }
+  return `rgb(${r | 0},${g | 0},${b | 0})`;
+}
+
+const wrap = (body) =>
+  `<svg viewBox="0 0 56 116" xmlns="http://www.w3.org/2000/svg">${body}</svg>`;
+
+// ------------------------------------------------------------------ เครื่องมือ
+function toolIcon(id, opt = {}) {
+  const u = ++uid;
+  const col = opt.color || '#F5B93A';
+  const sh = `<ellipse cx="28" cy="108" rx="17" ry="5" fill="url(#sh${u})"/>`;
+
+  if (id === 'pencil') {
+    return wrap(`<defs>${SHADOW(u)}
+      ${g3('pb' + u, mix(col, -.42), mix(col, .5), mix(col, .04), mix(col, -.34))}
+      ${g3('pw' + u, '#D9A276', '#FFE3C6', '#E0B489', '#C98F60')}
+      ${g3('pp' + u, '#D4658F', '#FFC2D8', '#F0A0BE', '#C85B85')}
+      ${g3('sv' + u, '#8E9AA6', '#FCFDFE', '#C3CDD7', '#7E8B98')}</defs>
+      ${sh}
+      <rect x="20" y="16" width="16" height="11" rx="3" fill="url(#pp${u})"/>
+      <rect x="20" y="26" width="16" height="6" fill="url(#sv${u})"/>
+      <rect x="20" y="32" width="16" height="47" fill="url(#pb${u})"/>
+      <rect x="23" y="34" width="2.6" height="43" rx="1.3" fill="#fff" opacity=".5"/>
+      <path d="M20 79 L36 79 L28 103 Z" fill="url(#pw${u})"/>
+      <path d="M24.6 92 L31.4 92 L28 103 Z" fill="#3A3A3A"/>`);
+  }
+
+  if (id === 'brush') {
+    return wrap(`<defs>${SHADOW(u)}
+      ${g3('bh' + u, '#8A5A14', '#E5AE5E', '#C08B33', '#7C4E0F')}
+      ${g3('bs' + u, mix(col, -.45), mix(col, .42), mix(col, -.02), mix(col, -.4))}
+      ${g3('sv' + u, '#8E9AA6', '#FCFDFE', '#C3CDD7', '#7E8B98')}</defs>
+      ${sh}
+      <rect x="20" y="12" width="16" height="42" rx="7" fill="url(#bh${u})"/>
+      <rect x="23" y="16" width="2.6" height="34" rx="1.3" fill="#fff" opacity=".45"/>
+      <rect x="17" y="52" width="22" height="15" rx="3" fill="url(#sv${u})"/>
+      <rect x="17" y="56" width="22" height="1.6" fill="#7E8B98" opacity=".6"/>
+      <path d="M17 67 L39 67 L34 98 Q28 103 22 98 Z" fill="url(#bs${u})"/>
+      <path d="M22 70 L25 70 L23.5 96 Z" fill="#fff" opacity=".35"/>`);
+  }
+
+  if (id === 'eraser') {
+    return wrap(`<defs>${SHADOW(u)}
+      ${g3('ew' + u, '#CFD4D9', '#FFFFFF', '#EDF0F2', '#C4CAD0')}
+      ${g3('eb' + u, '#2E6FB0', '#A8D3F7', '#5E9FD6', '#2A6AAA')}</defs>
+      ${sh}
+      <rect x="10" y="38" width="36" height="64" rx="8" fill="url(#ew${u})"/>
+      <path d="M10 74 h36 v20 a8 8 0 0 1 -8 8 h-20 a8 8 0 0 1 -8 -8 z" fill="url(#eb${u})"/>
+      <ellipse cx="20" cy="49" rx="5" ry="7" fill="#fff" opacity=".75"/>`);
+  }
+
+  if (id === 'bucket') {
+    return wrap(`<defs>${SHADOW(u)}
+      ${g3('sv' + u, '#8E9AA6', '#FCFDFE', '#C3CDD7', '#7E8B98')}
+      ${g3('pc' + u, mix(col, -.4), mix(col, .45), mix(col, .02), mix(col, -.36))}</defs>
+      ${sh}
+      <path d="M12 36 Q28 14 44 36" stroke="#96A3B0" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M11 38 L45 38 L40 100 L16 100 Z" fill="url(#sv${u})"/>
+      <rect x="16" y="44" width="3.4" height="50" rx="1.7" fill="#fff" opacity=".6"/>
+      <ellipse cx="28" cy="38" rx="17" ry="5.2" fill="#DDE4EA"/>
+      <ellipse cx="28" cy="38" rx="13.5" ry="4" fill="url(#pc${u})"/>
+      <path d="M41 44 q6 6 3 14 q-6 3 -8 -4 z" fill="${mix(col, -.05)}"/>`);
+  }
+
+  if (id === 'roller') {
+    const head = opt.tile
+      ? `<pattern id="rp${u}" width="14" height="14" patternUnits="userSpaceOnUse">
+         <image href="${opt.tile}" width="14" height="14"/></pattern>`
+      : `<linearGradient id="rp${u}" x1="0" y1="0" x2="0" y2="1">
+         <stop offset="0" stop-color="${mix(col, .35)}"/>
+         <stop offset="1" stop-color="${mix(col, -.15)}"/></linearGradient>`;
+    return wrap(`<defs>${SHADOW(u)}${head}
+      <linearGradient id="cy${u}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fff" stop-opacity=".55"/>
+        <stop offset=".4" stop-color="#fff" stop-opacity="0"/>
+        <stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient>
+      ${g3('dk' + u, '#1F1F1F', '#7E7E7E', '#3D3D3D', '#242424')}</defs>
+      ${sh}
+      <rect x="4" y="22" width="48" height="22" rx="10" fill="url(#rp${u})"/>
+      <rect x="4" y="22" width="48" height="22" rx="10" fill="url(#cy${u})"/>
+      <path d="M28 44 v14 q0 9 8 9 h2" stroke="#9AA6B2" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M28 44 v14 q0 9 8 9 h2" stroke="#fff" stroke-width="1.2" fill="none" opacity=".6" stroke-linecap="round"/>
+      <rect x="32" y="66" width="13" height="34" rx="6.5" fill="url(#dk${u})"/>
+      <rect x="35" y="70" width="2.4" height="26" rx="1.2" fill="#fff" opacity=".4"/>`);
+  }
+
+  // sticker
+  return wrap(`<defs>${SHADOW(u)}
+    ${g3('pk' + u, '#D9739E', '#FFD3E4', '#F7A8C8', '#CF6390')}</defs>
+    ${sh}
+    <path d="M10 22 l5 4 5 -4 5 4 5 -4 5 4 5 -4 5 4 v70 l-5 -4 -5 4 -5 -4 -5 4 -5 -4 -5 4 -5 -4 z" fill="url(#pk${u})"/>
+    <path d="M15 26 L20 26 L25 92 L20 92 Z" fill="#fff" opacity=".3"/>
+    <circle cx="28" cy="58" r="12" fill="#fff" opacity=".95"/>
+    <circle cx="28" cy="52" r="4.2" fill="#F58FB6"/><circle cx="33.8" cy="56.2" r="4.2" fill="#F58FB6"/>
+    <circle cx="31.6" cy="63" r="4.2" fill="#F58FB6"/><circle cx="24.4" cy="63" r="4.2" fill="#F58FB6"/>
+    <circle cx="22.2" cy="56.2" r="4.2" fill="#F58FB6"/>
+    <circle cx="28" cy="58" r="3.4" fill="#FFE07A"/>`);
+}
+
+// ------------------------------------------------------------------ ปุ่มบน
+function topIcon(kind) {
+  const u = ++uid;
+  const face = { undo: '#8A5BD6', redo: '#4FA83C', save: '#1F9C74', photo: '#9AAAB6' }[kind];
+  const sym = {
+    undo: '<path d="M62 62 Q50 38 32 46 M32 46 L34 30 M32 46 L47 51" stroke="#fff" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    redo: '<path d="M38 62 Q50 38 68 46 M68 46 L66 30 M68 46 L53 51" stroke="#fff" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    save: '<path d="M50 28 v26 M38 46 l12 12 12 -12 M32 70 h36" stroke="#fff" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    photo: '<rect x="30" y="36" width="40" height="30" rx="4" fill="none" stroke="#fff" stroke-width="6"/><circle cx="41" cy="46" r="4" fill="#fff"/><path d="M33 64 L46 50 L57 64 Z" fill="#fff"/>'
+  }[kind];
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>
+    <radialGradient id="bg${u}" cx=".35" cy=".28" r=".85">
+      <stop offset="0" stop-color="${mix(face, .5)}"/>
+      <stop offset=".55" stop-color="${face}"/>
+      <stop offset="1" stop-color="${mix(face, -.32)}"/></radialGradient>
+    <linearGradient id="gl${u}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+    <ellipse cx="50" cy="93" rx="34" ry="5" fill="#2A4356" opacity=".2"/>
+    <circle cx="50" cy="48" r="44" fill="url(#bg${u})"/>
+    <ellipse cx="50" cy="26" rx="30" ry="16" fill="url(#gl${u})"/>
+    ${sym}</svg>`;
+}
+
+// ------------------------------------------------------------------ ปุ่มสี
+function colorSwatch(hex) {
+  const u = ++uid;
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>
+    <radialGradient id="c${u}" cx=".34" cy=".28" r=".9">
+      <stop offset="0" stop-color="${mix(hex, .55)}"/>
+      <stop offset=".5" stop-color="${hex}"/>
+      <stop offset="1" stop-color="${mix(hex, -.3)}"/></radialGradient>
+    <linearGradient id="s${u}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".6"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+    <circle cx="50" cy="50" r="46" fill="#fff"/>
+    <circle cx="50" cy="50" r="41" fill="url(#c${u})"/>
+    <ellipse cx="50" cy="30" rx="26" ry="14" fill="url(#s${u})"/></svg>`;
+}
+
+function killIcon() {
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="44" fill="#E05252" stroke="#fff" stroke-width="6"/>
+    <path d="M34 34 L66 66 M66 34 L34 66" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg>`;
+}
+
+// เอนจินวาดภาพ ทำงานบน canvas 2D ล้วน ไม่พึ่งไลบรารีภายนอก
+
+const W = 1280, H = 960;
+const TS = 128;                 // ขนาดช่องสำหรับเก็บประวัติ
+const SPRITE = 128;             // ความละเอียดหัวแปรง
+
+const mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return c; };
+
+// ---------------------------------------------------------------- ประวัติ
+class History {
+  constructor(eng) {
+    this.e = eng; this.past = []; this.future = [];
+    this.max = 20; this.budget = 56e6; this.bytes = 0; this.cur = null;
+  }
+  begin() { this.cur = new Map(); }
+  touch(layer, x0, y0, x1, y1) {
+    if (!this.cur) return;
+    const ctx = this.e.ctx[layer];
+    const tx0 = Math.max(0, (x0 / TS) | 0), tx1 = Math.min(Math.ceil(W / TS) - 1, (x1 / TS) | 0);
+    const ty0 = Math.max(0, (y0 / TS) | 0), ty1 = Math.min(Math.ceil(H / TS) - 1, (y1 / TS) | 0);
+    for (let ty = ty0; ty <= ty1; ty++) for (let tx = tx0; tx <= tx1; tx++) {
+      const k = layer + ':' + tx + ':' + ty;
+      if (this.cur.has(k)) continue;
+      const w = Math.min(TS, W - tx * TS), h = Math.min(TS, H - ty * TS);
+      this.cur.set(k, { layer, tx, ty, w, h, before: ctx.getImageData(tx * TS, ty * TS, w, h) });
+    }
+  }
+  commit() {
+    if (!this.cur || !this.cur.size) { this.cur = null; return; }
+    const items = [];
+    for (const it of this.cur.values()) {
+      it.after = this.e.ctx[it.layer].getImageData(it.tx * TS, it.ty * TS, it.w, it.h);
+      items.push(it);
+      this.bytes += it.w * it.h * 8;
+    }
+    this.past.push(items); this.future.length = 0; this.cur = null;
+    while (this.past.length > this.max || this.bytes > this.budget) this.drop();
+  }
+  drop() {
+    const old = this.past.shift(); if (!old) return;
+    for (const it of old) this.bytes -= it.w * it.h * 8;
+  }
+  apply(items, which) {
+    for (const it of items)
+      this.e.ctx[it.layer].putImageData(it[which], it.tx * TS, it.ty * TS);
+  }
+  undo() {
+    const it = this.past.pop(); if (!it) return false;
+    this.apply(it, 'before'); this.future.push(it); return true;
+  }
+  redo() {
+    const it = this.future.pop(); if (!it) return false;
+    this.apply(it, 'after'); this.past.push(it); return true;
+  }
+  clear() { this.past.length = 0; this.future.length = 0; this.bytes = 0; this.cur = null; }
+  get canUndo() { return this.past.length > 0; }
+  get canRedo() { return this.future.length > 0; }
+}
+
+// ---------------------------------------------------------------- เอนจิน
+class Engine {
+  constructor(canvases) {
+    this.cv = canvases;                       // {bg,fill,paint,line}
+    this.ctx = {};
+    for (const k in canvases) {
+      canvases[k].width = W; canvases[k].height = H;
+      this.ctx[k] = canvases[k].getContext('2d', { willReadFrequently: true });
+    }
+    this.ctx.bg.fillStyle = '#fff'; this.ctx.bg.fillRect(0, 0, W, H);
+    this.history = new History(this);
+    this.color = '#E8342A';
+    this.ink = INKS[0];
+    this.size = 64;
+    this.tool = 'pencil';
+    this._masks = new Map(); this._sprites = new Map(); this._tiles = new Map();
+    this._wall = null; this._wallD = null; this._band = null;
+    this._gap = -1; this._dirty = true;
+    this.onChange = () => { };
+  }
+
+  // ------------------------------------------------------- หัวแปรงและลาย
+  mask(tipName) {
+    if (this._masks.has(tipName)) return this._masks.get(tipName);
+    const c = document.createElement('canvas'); c.width = c.height = SPRITE;
+    TIPS[tipName](c.getContext('2d'), SPRITE);
+    this._masks.set(tipName, c); return c;
+  }
+  tile(patternId, color) {
+    const p = PATTERNS.find(x => x.id === patternId);
+    const key = patternId + (p.tintable ? color : '');
+    if (this._tiles.has(key)) return this._tiles.get(key);
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    p.draw(c.getContext('2d'), 64, color);
+    this._tiles.set(key, c); return c;
+  }
+  sprite(color) { return this.spriteFor(this.ink, color); }
+  spriteFor(ink, color) {
+    const key = ink.id + '|' + color;
+    if (this._sprites.has(key)) return this._sprites.get(key);
+    const c = document.createElement('canvas'); c.width = c.height = SPRITE;
+    const x = c.getContext('2d');
+    if (ink.kind === 'tip') {
+      x.drawImage(this.mask(ink.tip), 0, 0);
+      x.globalCompositeOperation = 'source-in';
+      x.fillStyle = color; x.fillRect(0, 0, SPRITE, SPRITE);
+    } else {
+      const t = this.tile(ink.pattern, color);
+      x.fillStyle = x.createPattern(t, 'repeat');
+      x.fillRect(0, 0, SPRITE, SPRITE);
+      x.globalCompositeOperation = 'destination-in';
+      x.drawImage(this.mask('round'), 0, 0);
+    }
+    this._sprites.set(key, c); return c;
+  }
+  inkColor(i) {
+    if (!this.ink.rainbow) return this.color;
+    const h = ((i * 9) % 360) | 0;
+    return `hsl(${h} 85% 55%)`;
+  }
+  tileURL() {
+    if (this.ink.kind !== 'pattern') return null;
+    return this.tile(this.ink.pattern, this.color).toDataURL();
+  }
+
+  // ------------------------------------------------------- การลากเส้น
+  strokeStart(x, y, pr) {
+    this.history.begin();
+    this._n = 0; this._last = null; this._acc = 0;
+    this._bb = [x, y, x, y];
+    this.strokeMove(x, y, pr, true);
+  }
+  strokeMove(x, y, pr, first) {
+    const eraser = this.tool === 'eraser';
+    const layers = eraser ? ['paint', 'fill'] : ['paint'];
+    const ink = this.ink;
+    const base = this.tool === 'pencil' ? this.size * .42 : this.size * (ink.size || 1);
+    const sz = Math.max(4, base * (0.42 + 0.58 * (pr || 1)));
+    const step = Math.max(1.4, sz * (ink.spacing || (this.tool === 'pencil' ? .12 : .22)));
+
+    let p0 = this._last || { x, y };
+    let dx = x - p0.x, dy = y - p0.y;
+    let dist = Math.hypot(dx, dy);
+    if (!first && dist < step * .6) return;
+    const steps = first ? 1 : Math.max(1, Math.ceil(dist / step));
+
+    for (let i = 1; i <= steps; i++) {
+      const t = first ? 1 : i / steps;
+      let px = p0.x + dx * t, py = p0.y + dy * t;
+      const sc = ink.scatter || 0;
+      if (sc) { px += (Math.random() - .5) * sz * sc * 2; py += (Math.random() - .5) * sz * sc * 2; }
+      this.stamp(px, py, sz, layers, eraser);
+    }
+    this._last = { x, y };
+  }
+  stamp(x, y, sz, layers, eraser) {
+    const r = sz / 2;
+    this._bb[0] = Math.min(this._bb[0], x - r); this._bb[1] = Math.min(this._bb[1], y - r);
+    this._bb[2] = Math.max(this._bb[2], x + r); this._bb[3] = Math.max(this._bb[3], y + r);
+    for (const L of layers) this.history.touch(L, x - r - 2, y - r - 2, x + r + 2, y + r + 2);
+
+    if (eraser) {
+      for (const L of layers) {
+        const c = this.ctx[L];
+        c.save(); c.globalCompositeOperation = 'destination-out';
+        c.drawImage(this.mask('round'), x - r, y - r, sz, sz); c.restore();
+      }
+      this._dirty = true; return;
+    }
+    const c = this.ctx.paint;
+    const sp = this.sprite(this.inkColor(this._n));
+    c.save();
+    c.globalAlpha = this.ink.alpha || 1;
+    if (this.ink.spin) {
+      c.translate(x, y); c.rotate(Math.random() * 6.283); c.drawImage(sp, -r, -r, sz, sz);
+    } else {
+      c.drawImage(sp, x - r, y - r, sz, sz);
+    }
+    c.restore();
+    this._n++; this._dirty = true;
+  }
+  strokeEnd() { this.history.commit(); this.onChange(); }
+
+  // ------------------------------------------------------- ถังสีอัจฉริยะ
+  wallMask(gap) {
+    if (this._wall && !this._dirty && this._gap === gap) return this._wall;
+    const a = this.ctx.line.getImageData(0, 0, W, H).data;
+    const b = this.ctx.paint.getImageData(0, 0, W, H).data;
+    const m = new Uint8Array(W * H);
+    for (let i = 0, p = 3; i < m.length; i++, p += 4)
+      if (a[p] > 45 || b[p] > 45) m[i] = 1;
+    this._wall = m;
+    this._wallD = Engine.dilate(m, gap);
+    // แถบบางระหว่างเส้นจริงกับเส้นที่ถูกขยาย ใช้คืนสีให้ชิดเส้นโดยไม่ต้องขยายทั้งภาพ
+    const band = [];
+    for (let i = 0; i < m.length; i++) if (this._wallD[i] && !m[i]) band.push(i);
+    this._band = Int32Array.from(band);
+    this._gap = gap; this._dirty = false;
+    return m;
+  }
+  static dilate(src, r) {
+    const tmp = new Uint8Array(W * H), out = new Uint8Array(W * H);
+    for (let y = 0; y < H; y++) {
+      const o = y * W;
+      for (let x = 0; x < W; x++) {
+        let v = 0;
+        for (let k = -r; k <= r; k++) {
+          const xx = x + k;
+          if (xx >= 0 && xx < W && src[o + xx]) { v = 1; break; }
+        }
+        tmp[o + x] = v;
+      }
+    }
+    for (let x = 0; x < W; x++) {
+      for (let y = 0; y < H; y++) {
+        let v = 0;
+        for (let k = -r; k <= r; k++) {
+          const yy = y + k;
+          if (yy >= 0 && yy < H && tmp[yy * W + x]) { v = 1; break; }
+        }
+        out[y * W + x] = v;
+      }
+    }
+    return out;
+  }
+  static flood(block, sx, sy) {
+    const seen = new Uint8Array(W * H);
+    const si = sy * W + sx;
+    if (block[si]) return null;
+    const st = [sx, sy]; seen[si] = 1;
+    while (st.length) {
+      const y = st.pop(), x0 = st.pop();
+      const o = y * W;
+      let l = x0, r = x0;
+      while (l > 0 && !block[o + l - 1]) { l--; seen[o + l] = 1; }
+      while (r < W - 1 && !block[o + r + 1]) { r++; seen[o + r] = 1; }
+      for (let x = l; x <= r; x++) {
+        seen[o + x] = 1;
+        for (const ny of [y - 1, y + 1]) {
+          if (ny < 0 || ny >= H) continue;
+          const ni = ny * W + x;
+          if (!block[ni] && !seen[ni]) { seen[ni] = 1; st.push(x, ny); }
+        }
+      }
+    }
+    return seen;
+  }
+  fillAt(x, y, gap = 3) {
+    x = Math.round(x); y = Math.round(y);
+    if (x < 0 || y < 0 || x >= W || y >= H) return false;
+    const wall = this.wallMask(gap), wallD = this._wallD, band = this._band;
+    if (wallD[y * W + x]) return false;
+    const reg = Engine.flood(wallD, x, y);
+    if (!reg) return false;
+
+    // คืนสีเข้าไปให้ชิดเส้นจริง ทำเฉพาะพิกเซลในแถบบาง จึงเร็วกว่าขยายทั้งภาพมาก
+    for (let k = 0; k <= gap; k++) {
+      const addList = [];
+      for (let bi = 0; bi < band.length; bi++) {
+        const i = band[bi];
+        if (reg[i]) continue;
+        const px = i % W;
+        if ((px > 0 && reg[i - 1]) || (px < W - 1 && reg[i + 1]) ||
+            (i >= W && reg[i - W]) || (i < W * H - W && reg[i + W])) addList.push(i);
+      }
+      if (!addList.length) break;
+      for (let j = 0; j < addList.length; j++) reg[addList[j]] = 1;
+    }
+
+    const img = new ImageData(W, H), d = img.data;
+    let x0 = W, y0 = H, x1 = -1, y1 = -1;
+    for (let i = 0; i < reg.length; i++) {
+      if (!reg[i] || wall[i]) continue;
+      d[i * 4 + 3] = 255;
+      const px = i % W, py = (i / W) | 0;
+      if (px < x0) x0 = px; if (px > x1) x1 = px;
+      if (py < y0) y0 = py; if (py > y1) y1 = py;
+    }
+    if (x1 < 0) return false;
+
+    const t = mk(), tc = t.getContext('2d');
+    tc.putImageData(img, 0, 0);
+    tc.globalCompositeOperation = 'source-in';
+    tc.fillStyle = this.ink.kind === 'pattern'
+      ? tc.createPattern(this.tile(this.ink.pattern, this.color), 'repeat')
+      : this.color;
+    tc.fillRect(0, 0, W, H);
+
+    this.history.begin();
+    this.history.touch('fill', x0, y0, x1, y1);
+    this.ctx.fill.drawImage(t, 0, 0);
+    this.history.commit();
+    this.onChange();
+    return true;
+  }
+
+  // ------------------------------------------------------- ภาพและพื้นหลัง
+  clearAll() {
+    this.ctx.fill.clearRect(0, 0, W, H);
+    this.ctx.paint.clearRect(0, 0, W, H);
+    this.ctx.line.clearRect(0, 0, W, H);
+    this.ctx.bg.fillStyle = '#fff'; this.ctx.bg.fillRect(0, 0, W, H);
+    this.history.clear(); this._dirty = true; this.onChange();
+  }
+  loadLineArt(id) {
+    const art = LINEARTS.find(a => a.id === id) || LINEARTS[0];
+    this.clearAll();
+    const c = this.ctx.line;
+    c.save();
+    c.setTransform(W / 200, 0, 0, H / 150, 0, 0);
+    c.strokeStyle = '#1E1E1E'; c.lineWidth = 2.2;
+    c.lineJoin = 'round'; c.lineCap = 'round';
+    for (const d of art.paths) c.stroke(new Path2D(d));
+    c.restore();
+    this._dirty = true;
+  }
+  drawPhoto(img) {
+    const c = this.ctx.bg;
+    c.fillStyle = '#fff'; c.fillRect(0, 0, W, H);
+    const s = Math.max(W / img.width, H / img.height);
+    const w = img.width * s, h = img.height * s;
+    c.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+    this._dirty = true; this.onChange();
+  }
+  // แปลงภาพพื้นหลังเป็นลายเส้น 3 ระดับ ทำงานบนเครื่องทั้งหมด
+  // วิธีการ ทำให้ภาพเนียนก่อน แล้วแบ่งความสว่างเป็นชั้น ๆ
+  // เส้นคือรอยต่อระหว่างชั้น จึงได้เส้นที่ปิดเป็นวงและเทสีได้
+  static boxBlur(src, r) {
+    if (r < 1) return src.slice();
+    const a = new Float32Array(W * H), b = new Float32Array(W * H);
+    const d = 2 * r + 1;
+    for (let y = 0; y < H; y++) {
+      const o = y * W;
+      let sum = src[o] * (r + 1);
+      for (let x = 1; x <= r; x++) sum += src[o + Math.min(x, W - 1)];
+      for (let x = 0; x < W; x++) {
+        a[o + x] = sum / d;
+        sum += src[o + Math.min(x + r + 1, W - 1)] - src[o + Math.max(x - r, 0)];
+      }
+    }
+    for (let x = 0; x < W; x++) {
+      let sum = a[x] * (r + 1);
+      for (let y = 1; y <= r; y++) sum += a[Math.min(y, H - 1) * W + x];
+      for (let y = 0; y < H; y++) {
+        b[y * W + x] = sum / d;
+        sum += a[Math.min(y + r + 1, H - 1) * W + x] - a[Math.max(y - r, 0) * W + x];
+      }
+    }
+    return b;
+  }
+  photoToLineArt(level = 1) {
+    const n = W * H;
+    const src = this.ctx.bg.getImageData(0, 0, W, H).data;
+    let g = new Float32Array(n);
+    for (let i = 0, p = 0; i < n; i++, p += 4)
+      g[i] = src[p] * .299 + src[p + 1] * .587 + src[p + 2] * .114;
+
+    const radius = [9, 5, 2][level];
+    g = Engine.boxBlur(g, radius);
+    g = Engine.boxBlur(g, Math.max(1, radius >> 1));
+
+    // ยืดช่วงความสว่างโดยตัดหัวท้าย 2% กันภาพมืดหรือสว่างเกินไป
+    const hist = new Int32Array(256);
+    for (let i = 0; i < n; i++) hist[Math.max(0, Math.min(255, g[i] | 0))]++;
+    let acc = 0, lo = 0, hi = 255;
+    for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc > n * .02) { lo = v; break; } }
+    acc = 0;
+    for (let v = 255; v >= 0; v--) { acc += hist[v]; if (acc > n * .02) { hi = v; break; } }
+    if (hi - lo < 12) { hi = lo + 12; }
+    const norm = new Float32Array(n);
+    for (let i = 0; i < n; i++)
+      norm[i] = Math.max(0, Math.min(.9999, (g[i] - lo) / (hi - lo)));
+
+    // เลือกจำนวนชั้นที่ให้ปริมาณเส้นใกล้เป้าหมายที่สุด ปรับเองตามภาพแต่ละใบ
+    const target = [.022, .040, .065][level];
+    const cand = [[2, 3, 4], [3, 4, 5, 6], [4, 5, 6, 7, 8]][level];
+    let bestK = cand[0], bestErr = Infinity, bestEdge = null;
+    for (const K of cand) {
+      const q = new Uint8Array(n);
+      for (let i = 0; i < n; i++) q[i] = (norm[i] * K) | 0;
+      const e = new Uint8Array(n);
+      let cnt = 0;
+      for (let y = 0; y < H - 1; y++) {
+        const o = y * W;
+        for (let x = 0; x < W - 1; x++) {
+          const i = o + x;
+          if (q[i] !== q[i + 1] || q[i] !== q[i + W]) { e[i] = 1; cnt++; }
+        }
+      }
+      const err = Math.abs(cnt / n - target);
+      if (err < bestErr) { bestErr = err; bestK = K; bestEdge = e; }
+    }
+
+    // ทำเส้นให้หนาขึ้นเพื่อให้เด็กเห็นชัดและเทสีไม่รั่ว
+    const thick = Engine.dilate(bestEdge, level === 2 ? 1 : 2);
+
+    const img = new ImageData(W, H), d = img.data;
+    for (let i = 0, p = 3; i < n; i++, p += 4) if (thick[i]) d[p] = 255;
+
+    this.ctx.line.clearRect(0, 0, W, H);
+    this.ctx.line.putImageData(img, 0, 0);
+    this.ctx.bg.fillStyle = '#fff'; this.ctx.bg.fillRect(0, 0, W, H);
+    this.ctx.fill.clearRect(0, 0, W, H);
+    this.ctx.paint.clearRect(0, 0, W, H);
+    this.history.clear(); this._dirty = true; this.onChange();
+    this.lastPhotoLevels = bestK;
+  }
+
+  // ------------------------------------------------------- ส่งออก
+  flatten(stickerImgs) {
+    const c = mk(), x = c.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, W, H);
+    x.drawImage(this.cv.bg, 0, 0);
+    x.drawImage(this.cv.fill, 0, 0);
+    x.drawImage(this.cv.paint, 0, 0);
+    x.drawImage(this.cv.line, 0, 0);
+    for (const s of stickerImgs || []) {
+      x.save();
+      x.translate(s.x, s.y); x.rotate(s.rot); x.scale(s.scale, s.scale);
+      x.drawImage(s.img, -s.w / 2, -s.h / 2, s.w, s.h);
+      x.restore();
+    }
+    return c;
+  }
+}
+
+// ตัวควบคุมหลักของแอป
+
+const $ = (s) => document.querySelector(s);
+const card = $('#card'), stage = $('#stage'), input = $('#input');
+const layerEl = $('#stickers'), killBtn = $('#stickerKill');
+
+const eng = new Engine({
+  bg: $('#cBg'), fill: $('#cFill'), paint: $('#cPaint'), line: $('#cLine')
+});
+
+const TOOLS = ['pencil', 'brush', 'eraser', 'bucket', 'roller', 'sticker'];
+const stickers = [];
+let selected = null;
+const state = { tool: 'pencil', color: COLORS[0], ink: 0, page: 0, kid: true };
+
+// ---------------------------------------------------------------- ขนาดผืนผ้าใบ
+function layout() {
+  const pad = 24;
+  const aw = stage.clientWidth - pad * 2, ah = stage.clientHeight - pad * 2;
+  const s = Math.min(aw / W, ah / H);
+  card.style.width = Math.floor(W * s) + 'px';
+  card.style.height = Math.floor(H * s) + 'px';
+  stickers.forEach(place);
+  placeKill();
+}
+addEventListener('resize', layout);
+addEventListener('orientationchange', () => setTimeout(layout, 250));
+
+// ---------------------------------------------------------------- แถบสี
+const rowColor = $('#rowColor');
+function buildColors() {
+  rowColor.innerHTML = '';
+  COLORS.forEach((c,ci) => {
+    const b = document.createElement('button');
+    b.className = 'swatch' + (c === state.color ? ' on' : '');
+    b.innerHTML = colorSwatch(c); b.dataset.label = COLOR_NAMES[ci]; b.setAttribute('aria-label',COLOR_NAMES[ci]); b.setAttribute('aria-pressed', c === state.color);
+    b.onclick = () => {
+      state.color = c; eng.color = c; say(COLOR_NAMES[ci]);
+      buildColors(); buildInks(); buildTools();
+    };
+    rowColor.appendChild(b);
+  });
+}
+
+// ---------------------------------------------------------------- แถบพื้นผิว
+const rowTex = $('#rowTex');
+const PER = 6;
+function inkList() { return state.kid ? ['round','soft','crayon','p-linen','p-woodgrain','p-watercolor','p-grass','p-sand','p-hearts','p-stars','p-sky','p-candy'].map(id=>INKS.find(i=>i.id===id)) : INKS; }
+function inkPreview(ink) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 72;
+  const x = c.getContext('2d');
+  if (ink.kind === 'pattern') {
+    x.fillStyle = x.createPattern(eng.tile(ink.pattern, state.color), 'repeat');
+    x.fillRect(0, 0, 72, 72);
+  } else {
+    x.fillStyle = '#F0F0F0'; x.fillRect(0, 0, 72, 72);
+    const sp = eng.spriteFor(ink, state.color);
+    x.drawImage(sp, 4, 4, 64, 64);
+  }
+  c.style.boxShadow = 'inset 0 0 0 5px #fff, inset 0 8px 10px rgba(255,255,255,.45),'
+    + ' inset 0 -8px 12px rgba(0,0,0,.15), 0 2px 5px rgba(20,50,80,.3)';
+  return c;
+}
+function buildInks() {
+  rowTex.innerHTML = '';
+  const list = inkList();
+  const pages = Math.ceil(list.length / PER);
+  state.page = Math.min(state.page, pages - 1);
+  const start = state.page * PER;
+  list.slice(start, start + PER).forEach((ink, i) => {
+    const idx = start + i;
+    const b = document.createElement('button');
+    b.className = 'swatch' + (idx === state.ink ? ' on' : '');
+    b.appendChild(inkPreview(ink)); b.dataset.label=INK_NAMES[ink.id] || ink.id.replace('p-',''); b.setAttribute('aria-label',b.dataset.label); b.setAttribute('aria-pressed',idx===state.ink);
+    b.onclick = () => { state.ink = idx; eng.ink = ink; state.tool=ink.kind==='pattern'?'roller':'brush'; eng.tool=state.tool; say('texture'); buildInks(); buildTools(); };
+    rowTex.appendChild(b);
+  });
+  if (pages > 1) {
+    const p = document.createElement('button');
+    p.id = 'page'; p.textContent = `More · ${state.page+1}/${pages} →`; p.setAttribute('aria-label','More textures');
+    p.onclick = () => { state.page = (state.page + 1) % pages; buildInks(); };
+    rowTex.appendChild(p);
+  }
+}
+
+// ---------------------------------------------------------------- แถบเครื่องมือ
+const rowTool = $('#rowTool');
+function buildTools() {
+  rowTool.innerHTML = '';
+  const ink = inkList()[state.ink] || INKS[0];
+  TOOLS.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'tool' + (t === state.tool ? ' on' : ''); b.dataset.label=t.charAt(0).toUpperCase()+t.slice(1); b.setAttribute('aria-label',b.dataset.label); b.setAttribute('aria-pressed',t===state.tool);
+    b.innerHTML = toolIcon(t, {
+      color: state.color,
+      tile: t === 'roller' && ink.kind === 'pattern'
+        ? eng.tile(ink.pattern, state.color).toDataURL() : null
+    });
+    b.onclick = () => {
+      say(t); if (t === 'sticker') { openStickerPicker(); return; }
+      state.tool = t; eng.tool = t; buildTools();
+    };
+    rowTool.appendChild(b);
+  });
+}
+
+// ---------------------------------------------------------------- ปุ่มบน
+const btnUndo = $('#btnUndo'), btnRedo = $('#btnRedo'),
+  btnSave = $('#btnSave'), btnPhoto = $('#btnPhoto');
+btnUndo.innerHTML = topIcon('undo');
+btnRedo.innerHTML = topIcon('redo');
+btnSave.innerHTML = topIcon('save');
+btnPhoto.innerHTML = topIcon('photo');
+killBtn.innerHTML = killIcon();
+
+btnUndo.onclick = () => { if (eng.history.undo()) refresh(); };
+btnRedo.onclick = () => { if (eng.history.redo()) refresh(); };
+btnSave.onclick = () => saveWork();
+btnPhoto.onclick = () => openParentMenu();
+
+function refresh() {
+  btnUndo.disabled = !eng.history.canUndo;
+  btnRedo.disabled = !eng.history.canRedo;
+}
+eng.onChange = refresh;
+
+// ---------------------------------------------------------------- การวาด
+let drawing = false, activeId = null, lastPen = 0;
+function pt(e) {
+  const r = card.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height };
+}
+function allowed(e) {
+  if (e.pointerType === 'pen') { lastPen = Date.now(); return true; }
+  return Date.now() - lastPen > 1200;      // กันฝ่ามือ เมื่อเพิ่งใช้ปากกา
+}
+
+input.addEventListener('pointerdown', (e) => {
+  if (!allowed(e)) return;
+  if (selected) deselect();
+  const p = pt(e);
+
+  if (state.tool === 'bucket' || state.tool === 'roller') {
+    const keep = eng.ink;
+    if (state.tool === 'bucket') eng.ink = INKS[0];
+    eng.fillAt(p.x, p.y, 3);
+    eng.ink = keep;
+    return;
+  }
+  if (drawing) return;
+  drawing = true; activeId = e.pointerId;
+  input.setPointerCapture(e.pointerId);
+  eng.ink = state.tool === 'pencil' ? INKS[0] : (inkList()[state.ink] || INKS[0]);
+  eng.color = state.color; eng.tool = state.tool;
+  eng.strokeStart(p.x, p.y, e.pressure || 1);
+});
+
+input.addEventListener('pointermove', (e) => {
+  if (!drawing || e.pointerId !== activeId) return;
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  for (const ev of evs) {
+    const p = pt(ev);
+    eng.strokeMove(p.x, p.y, ev.pressure || 1, false);
+  }
+});
+
+const endStroke = (e) => {
+  if (!drawing || (e && e.pointerId !== activeId)) return;
+  drawing = false; activeId = null; eng.strokeEnd();
+};
+input.addEventListener('pointerup', endStroke);
+input.addEventListener('pointercancel', endStroke);
+
+// ---------------------------------------------------------------- สติกเกอร์
+function place(s) {
+  const r = card.getBoundingClientRect();
+  const k = r.width / W;
+  s.el.style.width = s.w * k + 'px';
+  s.el.style.height = s.h * k + 'px';
+  s.el.style.transform =
+    `translate(${(s.x - s.w / 2) * k}px,${(s.y - s.h / 2) * k}px) rotate(${s.rot}rad) scale(${s.scale})`;
+}
+function placeKill() {
+  if (!selected) { killBtn.classList.remove('on'); return; }
+  const r = card.getBoundingClientRect(), k = r.width / W;
+  killBtn.classList.add('on');
+  killBtn.style.left = (selected.x * k + selected.w * k * selected.scale / 2 - 20) + 'px';
+  killBtn.style.top = (selected.y * k - selected.h * k * selected.scale / 2 - 36) + 'px';
+}
+function select(s) { deselect(); selected = s; s.el.classList.add('sel'); placeKill(); }
+function deselect() {
+  if (selected) selected.el.classList.remove('sel');
+  selected = null; killBtn.classList.remove('on');
+}
+killBtn.onclick = () => {
+  if (!selected) return;
+  selected.el.remove();
+  stickers.splice(stickers.indexOf(selected), 1);
+  deselect();
+};
+
+function addSticker(svgText) {
+  const url = 'data:image/svg+xml;utf8,' + encodeURIComponent(svgText);
+  const img = new Image();
+  const el = document.createElement('div');
+  el.className = 'sticker';
+  const im = document.createElement('img'); im.src = url; el.appendChild(im);
+  const s = { el, img, x: W / 2, y: H / 2, w: 220, h: 220, scale: 1, rot: 0 };
+  img.src = url;
+  layerEl.appendChild(el);
+  stickers.push(s);
+  place(s); select(s);
+  bindSticker(s);
+}
+
+function bindSticker(s) {
+  const ptrs = new Map();
+  let base = null;
+  s.el.addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    select(s);
+    s.el.setPointerCapture(e.pointerId);
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.size === 2) {
+      const [a, b] = [...ptrs.values()];
+      base = {
+        d: Math.hypot(a.x - b.x, a.y - b.y),
+        a: Math.atan2(b.y - a.y, b.x - a.x),
+        scale: s.scale, rot: s.rot
+      };
+    }
+  });
+  s.el.addEventListener('pointermove', (e) => {
+    if (!ptrs.has(e.pointerId)) return;
+    const prev = ptrs.get(e.pointerId);
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const r = card.getBoundingClientRect(), k = W / r.width;
+    if (ptrs.size === 1) {
+      s.x += (e.clientX - prev.x) * k;
+      s.y += (e.clientY - prev.y) * k;
+    } else if (ptrs.size === 2 && base) {
+      const [a, b] = [...ptrs.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      const ang = Math.atan2(b.y - a.y, b.x - a.x);
+      s.scale = Math.max(.25, Math.min(4, base.scale * d / base.d));
+      s.rot = base.rot + (ang - base.a);
+    }
+    place(s); placeKill();
+  });
+  const up = (e) => { ptrs.delete(e.pointerId); if (ptrs.size < 2) base = null; };
+  s.el.addEventListener('pointerup', up);
+  s.el.addEventListener('pointercancel', up);
+}
+
+function openStickerPicker() {
+  sheet(`<h2>เลือกสติกเกอร์</h2><div class="pickgrid" id="sg"></div>`, () => {
+    const g = $('#sg');
+    STICKERS.forEach(sv => {
+      const b = document.createElement('button');
+      b.innerHTML = sv;
+      b.onclick = () => { closeSheet(); addSticker(sv); };
+      g.appendChild(b);
+    });
+  });
+}
+
+// ---------------------------------------------------------------- แผงเมนู
+const sheetEl = $('#sheet'), sheetBox = $('#sheetBox');
+function sheet(html, after) {
+  sheetBox.innerHTML = html;
+  sheetEl.classList.add('on');
+  if (after) after();
+}
+function closeSheet() { sheetEl.classList.remove('on'); }
+sheetEl.addEventListener('pointerdown', (e) => { if (e.target === sheetEl) closeSheet(); });
+
+function openParentMenu() {
+  sheet(`<h2>เมนูผู้ปกครอง</h2><div class="mrow">
+    <button class="mbtn" id="mPick">เลือกภาพระบายสี</button>
+    <button class="mbtn" id="mFree">กระดาษเปล่า วาดอิสระ</button>
+    <button class="mbtn" id="mPhoto">นำรูปจาก iPad เข้ามา</button>
+    <button class="mbtn" id="mLine">แปลงรูปเป็นลายเส้น</button>
+    <button class="mbtn" id="mGal">ผลงานที่บันทึกไว้</button>
+    <button class="mbtn" id="mMode">${state.kid ? 'เปิดโหมดโตขึ้น' : 'กลับโหมดเด็กเล็ก'}</button>
+    <button class="mbtn danger" id="mClear">เริ่มภาพใหม่</button></div>`, () => {
+    $('#mPick').onclick = openArtPicker;
+    $('#mFree').onclick = () => {
+      closeSheet();
+      stickers.splice(0).forEach(s => s.el.remove()); deselect();
+      eng.clearAll();
+      state.tool = 'brush'; eng.tool = 'brush'; buildTools();
+    };
+    $('#mPhoto').onclick = () => { closeSheet(); $('#filePick').click(); };
+    $('#mLine').onclick = openLineLevels;
+    $('#mGal').onclick = openGallery;
+    $('#mMode').onclick = () => {
+      state.kid = !state.kid; state.page = 0; state.ink = 0;
+      eng.ink = INKS[0]; buildInks(); buildTools(); closeSheet();
+    };
+    $('#mClear').onclick = () => {
+      closeSheet();
+      stickers.splice(0).forEach(s => s.el.remove());
+      deselect(); eng.clearAll();
+    };
+  });
+}
+
+function artThumb(art) {
+  const p = art.paths.map(d => `<path d="${d}"/>`).join('');
+  return `<svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg"
+    fill="none" stroke="#1E1E1E" stroke-width="3"
+    stroke-linejoin="round" stroke-linecap="round">${p}</svg>`;
+}
+const BLANK_THUMB = `<svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+  <rect x="4" y="4" width="192" height="142" rx="8" fill="#fff" stroke="#C3D2DC" stroke-width="3"/>
+  <path d="M112 40 l24 24 -46 46 -30 6 6 -30Z" fill="#FAD98C" stroke="#9A7A2E" stroke-width="3"
+    stroke-linejoin="round"/>
+  <path d="M112 40 l10 -10 24 24 -10 10Z" fill="#E7B3C6" stroke="#9A7A2E" stroke-width="3"
+    stroke-linejoin="round"/>
+  <path d="M66 86 l30 6" stroke="#9A7A2E" stroke-width="3"/></svg>`;
+
+function openArtPicker() {
+  sheet(`<h2>เลือกภาพระบายสี</h2><div class="pickgrid" id="ag"></div>`, () => {
+    const g = $('#ag');
+    const blank = document.createElement('button');
+    blank.innerHTML = BLANK_THUMB;
+    blank.onclick = () => {
+      closeSheet();
+      stickers.splice(0).forEach(s => s.el.remove()); deselect();
+      eng.clearAll();
+      state.tool = 'brush'; eng.tool = 'brush'; buildTools();
+    };
+    g.appendChild(blank);
+    LINEARTS.forEach(a => {
+      const b = document.createElement('button');
+      b.innerHTML = artThumb(a);
+      b.onclick = () => {
+        closeSheet();
+        stickers.splice(0).forEach(s => s.el.remove()); deselect();
+        eng.loadLineArt(a.id);
+      };
+      g.appendChild(b);
+    });
+  });
+}
+function openLineLevels() {
+  sheet(`<h2>ระดับความยาก</h2><div class="mrow">
+    <button class="mbtn" data-l="0">ง่าย เส้นน้อย</button>
+    <button class="mbtn" data-l="1">ปานกลาง</button>
+    <button class="mbtn" data-l="2">ยาก เส้นเยอะ</button></div>`, () => {
+    sheetBox.querySelectorAll('[data-l]').forEach(b => {
+      b.onclick = () => { closeSheet(); setTimeout(() => eng.photoToLineArt(+b.dataset.l), 30); };
+    });
+  });
+}
+
+$('#filePick').addEventListener('change', (e) => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  const img = new Image();
+  img.onload = () => { eng.drawPhoto(img); URL.revokeObjectURL(img.src); };
+  img.src = URL.createObjectURL(f);
+  e.target.value = '';
+});
+
+// ---------------------------------------------------------------- บันทึกผลงาน
+let db = null;
+function openDB() {
+  return new Promise((res) => {
+    const r = indexedDB.open('paintbox', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('works', { keyPath: 'id' });
+    r.onsuccess = () => { db = r.result; res(db); };
+    r.onerror = () => res(null);
+  });
+}
+function flat() {
+  const imgs = stickers.map(s => ({
+    img: s.el.querySelector('img'), x: s.x, y: s.y,
+    w: s.w * s.scale, h: s.h * s.scale, scale: 1, rot: s.rot
+  }));
+  return eng.flatten(imgs);
+}
+async function saveWork() {
+  const c = flat();
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  if (db && blob) {
+    db.transaction('works', 'readwrite').objectStore('works')
+      .put({ id: Date.now(), blob });
+  }
+  say('saved'); chime(true); const f = $('#flash');
+  f.classList.add('on');
+  setTimeout(() => f.classList.remove('on'), 850);
+}
+function openGallery() {
+  sheet(`<h2>ผลงานที่บันทึกไว้</h2>
+    <p style="font-size:13px;color:#5B7387">แตะภาพเพื่อบันทึกลงแอป Photos</p>
+    <div id="gal"></div>`, () => {
+    if (!db) return;
+    const req = db.transaction('works').objectStore('works').getAll();
+    req.onsuccess = () => {
+      const g = $('#gal');
+      req.result.reverse().slice(0, 24).forEach(rec => {
+        const url = URL.createObjectURL(rec.blob);
+        const im = new Image(); im.src = url;
+        im.onclick = () => exportImage(rec.blob);
+        g.appendChild(im);
+      });
+    };
+  });
+}
+async function exportImage(blob) {
+  const file = new File([blob], 'ผลงาน.png', { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); return; } catch (e) { }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'paint.png'; a.click();
+}
+
+// English system voice preview. Voice availability and offline speech vary by device.
+const COLOR_NAMES=['Red','Orange','Yellow','Green','Blue','Purple','Pink','Brown','White','Black'];
+const INK_NAMES={round:'Smooth',soft:'Soft',crayon:'Crayon','p-linen':'Linen','p-woodgrain':'Wood','p-watercolor':'Watercolor','p-grass':'Grass','p-sand':'Sand','p-hearts':'Hearts','p-stars':'Stars','p-sky':'Sky','p-candy':'Candy'};
+let soundEnabled=false, audioContext=null;
+const PHRASES={welcome:"Hello, little artist! Let's paint something wonderful!",saved:'Great job! Your picture is saved!',texture:'Wow! Try this texture!',pencil:'Pencil!',brush:'Paint brush!',eraser:'Eraser!',bucket:'Paint bucket!',roller:'Magic roller!',sticker:'Stickers!'};
+function chime(success=false){
+ if(!soundEnabled)return;
+ try{audioContext ||= new (window.AudioContext||window.webkitAudioContext)();audioContext.resume().catch(()=>{});
+ const start=audioContext.currentTime;
+ (success?[523,659,784]:[680,920]).forEach((frequency,i)=>{const o=audioContext.createOscillator(),g=audioContext.createGain();o.type='sine';o.frequency.setValueAtTime(frequency,start+i*.09);g.gain.setValueAtTime(0,start+i*.09);g.gain.linearRampToValueAtTime(.035,start+i*.09+.008);g.gain.exponentialRampToValueAtTime(.001,start+i*.09+.15);o.connect(g);g.connect(audioContext.destination);o.start(start+i*.09);o.stop(start+i*.09+.16)});
+ }catch(e){}
+}
+function say(key){if(!soundEnabled||!('speechSynthesis' in window))return; speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(PHRASES[key]||key+'!');const voices=speechSynthesis.getVoices().filter(v=>/^en[-_]/i.test(v.lang));u.voice=voices.find(v=>/David|Mark|Daniel|Alex|Guy|James/i.test(v.name))||voices[0]||null;u.lang='en-US';u.pitch=1.35;u.rate=.93;u.volume=.7;speechSynthesis.speak(u);}
+document.addEventListener('click',e=>{if(e.target.closest('button'))chime()},true);
+$('#btnSound').onclick=()=>{soundEnabled=!soundEnabled;$('#btnSound').textContent=soundEnabled?'เสียง: เปิด':'เสียง: ปิด';$('#btnSound').classList.toggle('active',soundEnabled);$('#btnSound').setAttribute('aria-pressed',soundEnabled);if(soundEnabled){chime();say('welcome')}else{window.speechSynthesis?.cancel();audioContext?.suspend()}};
+input.addEventListener('pointerdown',()=>chime());
+document.addEventListener('visibilitychange',()=>{if(document.hidden){window.speechSynthesis?.cancel();audioContext?.suspend()}});
+function demoCanvas(){
+ const c=document.createElement('canvas');c.width=1000;c.height=660;const x=c.getContext('2d');
+ x.fillStyle='#fffdf6';x.fillRect(0,0,1000,660);
+ x.fillStyle='#dcecf0';x.beginPath();x.ellipse(500,315,360,230,0,0,Math.PI*2);x.fill();
+ const pattern=(id,col)=>x.createPattern(eng.tile(id,col),'repeat');
+ x.save();x.beginPath();x.ellipse(500,315,360,230,0,0,Math.PI*2);x.clip();x.fillStyle=pattern('linen','#8fba8d');x.beginPath();x.ellipse(450,570,500,175,0,0,Math.PI*2);x.fill();x.restore();
+ x.fillStyle='#f4cd70';x.beginPath();x.arc(727,159,47,0,Math.PI*2);x.fill();x.fillStyle='#775b3f';[714,741].forEach(a=>{x.beginPath();x.arc(a,156,3,0,7);x.fill()});x.beginPath();x.arc(727,162,10,.2,2.94);x.strokeStyle='#775b3f';x.lineWidth=3;x.stroke();
+ x.fillStyle='#fffefa';[290,610].forEach((a,i)=>{x.beginPath();x.ellipse(a,172+i*36,68,22,0,0,7);x.ellipse(a-15,158+i*36,27,25,0,0,7);x.fill()});
+ x.save();x.translate(110,35);x.scale(3.9,3.9);x.lineWidth=1.6;x.lineJoin='round';x.strokeStyle='#685749';
+ const car=LINEARTS.find(a=>a.id==='car'); car.paths.forEach((d,i)=>{let p=new Path2D(d);x.fillStyle=i===0?pattern('watercolor','#df927c'):[1,3].includes(i)?'#645a52':[2,4].includes(i)?'#e3d4bb':'#e9f4ed';x.fill(p);x.stroke(p)});x.restore();
+ x.font='600 23px Trebuchet MS';x.textAlign='center';x.fillStyle='#776451';x.fillText('Small hands. Big adventures.',500,607);
+ return c;
+}
+$('#btnDemo').onclick=()=>{sheet('<button class="close-sheet" aria-label="Close preview">×</button><h2>ไอเดียเล็ก ๆ สำหรับศิลปินตัวน้อย</h2><div id="demoArt"></div><div class="demo-swatches" id="demoTextures"></div><p class="note">ตัวอย่างสีวอเตอร์คัลเลอร์และพื้นผิวผ้า • เลือกพื้นผิวแล้วแตะช่องในภาพเพื่อเติมลายได้เลย<br>เสียงตัวอย่างเป็นเสียงสังเคราะห์ผู้ชายที่ปรับโทนให้สูงขึ้น ยังไม่ใช่เสียงเด็กผู้ชายจริง</p><button class="mbtn" id="sampleVoice">▶ ฟังเสียงภาษาอังกฤษ</button>',()=>{let c=demoCanvas();c.className='demo-art';$('#demoArt').append(c);['linen','woodgrain','watercolor'].forEach(id=>{let c=document.createElement('canvas');c.width=c.height=72;let x=c.getContext('2d');x.fillStyle=x.createPattern(eng.tile(id,id==='woodgrain'?'#bb8b59':'#d69686'),'repeat');x.fillRect(0,0,72,72);c.title=id;$('#demoTextures').append(c)});$('#sheetBox .close-sheet').onclick=closeSheet;$('#sampleVoice').onclick=()=>{if(!soundEnabled)$('#btnSound').click();say('welcome')}})};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+
+// ---------------------------------------------------------------- เริ่มทำงาน
+async function boot() {
+  await openDB();
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+  eng.color = state.color; eng.ink = INKS[0]; eng.tool = 'pencil';
+  buildColors(); buildInks(); buildTools(); refresh();
+  eng.loadLineArt('car');
+  layout();
+  if ('serviceWorker' in navigator)
+    navigator.serviceWorker.register('sw.js').catch(() => { });
+}
+boot();
+
+})();
+</script>
+</body>
+</html>
