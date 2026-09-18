@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#f1e6d5">
+<meta name="theme-color" content="#ffd6b7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="ระบายสี">
-<title>Little Art Studio · ระบายสีแสนสนุก</title>
+<title>Sticker Play · สมุดศิลปะของหนู</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.svg">
 <style>
@@ -103,6 +103,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#BFE0F
 .row,#sheetBox{touch-action:pan-x pan-y}#sheetBox button{touch-action:manipulation}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+<link rel="stylesheet" href="sticker-play.css">
 </head>
 <body>
 <div id="app">
@@ -113,7 +114,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#BFE0F
     <ellipse cx="24" cy="62" rx="10" ry="4.5" fill="#fff" opacity=".4"/>
   </svg>
 
-  <div id="topbar"><div class="brand"><span class="brand-mark">✿</span><div><strong>Little Art Studio</strong><small>A LITTLE MESS, A LOT OF MAGIC</small></div></div><button class="softbtn" id="btnDemo">ดูตัวอย่าง ✧</button><button class="softbtn" id="btnSound" aria-pressed="false" title="เปิดเสียงเอฟเฟกต์และเสียงพูดภาษาอังกฤษ">เสียง: ปิด</button>
+  <div id="topbar"><div class="brand"><span class="brand-mark">✿</span><div><strong>Sticker Play</strong><small>สมุดศิลปะของหนู</small></div></div><button class="softbtn active" id="btnSmart" aria-pressed="true" title="ดินสอและพู่กันวาดไม่เลยขอบ">✓ ไม่เลยขอบ</button><button class="softbtn" id="btnArt" aria-label="เลือกภาพระบายสี"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="3" width="24" height="26" rx="5" fill="#fff" stroke="#b1885e" stroke-width="2"/><circle cx="21" cy="11" r="4" fill="#f7bf48"/><path d="m7 25 7-12 5 8 3-4 4 8" fill="#91bc6d"/></svg><span>เลือกรูป</span></button><button class="softbtn" id="btnDemo">ดูตัวอย่าง ✧</button><button class="softbtn" id="btnSound" aria-pressed="false" title="เปิดเสียงเอฟเฟกต์และเสียงพูดภาษาอังกฤษ">เสียง: ปิด</button>
     <button class="topbtn" id="btnUndo" aria-label="ย้อนกลับ"></button>
     <button class="topbtn" id="btnRedo" aria-label="ทำซ้ำ"></button>
     <button class="topbtn" id="btnSave" aria-label="บันทึก"></button>
@@ -132,9 +133,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#BFE0F
     </div>
   </div>
 
-  <div class="row" id="rowColor"></div>
-  <div class="row" id="rowTex"></div>
-  <div class="row" id="rowTool"></div>
+  <div id="dock"><div class="row" id="rowTool"></div><div class="palette-stack"><div class="row" id="rowColor"></div><div class="palette-note"><span>เลือกสี แล้ววาดกันเลย!</span><button id="btnTexture" aria-expanded="false" aria-controls="rowTex"><span id="textureChip"></span>พื้นผิว · <span id="textureName">Smooth</span> ▴</button></div></div><div class="row" id="rowTex" aria-label="พื้นผิว"></div></div><div id="hint" role="status" aria-live="polite"></div>
 </div>
 
 <div id="flash" aria-hidden="true">
@@ -726,7 +725,7 @@ function killIcon() {
 
 // เอนจินวาดภาพ ทำงานบน canvas 2D ล้วน ไม่พึ่งไลบรารีภายนอก
 
-const W = 1280, H = 960;
+const W = 1600, H = matchMedia('(orientation:portrait)').matches ? Math.round(1600*Math.max(1,Math.min(1.7,(innerHeight-(innerWidth<=700?252:172)-28)/(innerWidth-32)))) : 960;
 const TS = 128;                 // ขนาดช่องสำหรับเก็บประวัติ
 const SPRITE = 128;             // ความละเอียดหัวแปรง
 
@@ -1032,7 +1031,8 @@ class Engine {
     this.clearAll();
     const c = this.ctx.line;
     c.save();
-    c.setTransform(W / 200, 0, 0, H / 150, 0, 0);
+    const artScale=Math.min(W/200,H/150);
+    c.setTransform(artScale,0,0,artScale,(W-200*artScale)/2,(H-150*artScale)/2);
     c.strokeStyle = '#1E1E1E'; c.lineWidth = 2.2;
     c.lineJoin = 'round'; c.lineCap = 'round';
     for (const d of art.paths) c.stroke(new Path2D(d));
@@ -1166,7 +1166,7 @@ const state = { tool: 'pencil', color: COLORS[0], ink: 0, page: 0, kid: true };
 
 // ---------------------------------------------------------------- ขนาดผืนผ้าใบ
 function layout() {
-  const pad = 24;
+  const pad = 14;
   const aw = stage.clientWidth - pad * 2, ah = stage.clientHeight - pad * 2;
   const s = Math.min(aw / W, ah / H);
   card.style.width = Math.floor(W * s) + 'px';
@@ -1224,7 +1224,7 @@ function buildInks() {
     const b = document.createElement('button');
     b.className = 'swatch' + (idx === state.ink ? ' on' : '');
     b.appendChild(inkPreview(ink)); b.dataset.label=INK_NAMES[ink.id] || ink.id.replace('p-',''); b.setAttribute('aria-label',b.dataset.label); b.setAttribute('aria-pressed',idx===state.ink);
-    b.onclick = () => { state.ink = idx; eng.ink = ink; state.tool=ink.kind==='pattern'?'roller':'brush'; eng.tool=state.tool; say('texture'); buildInks(); buildTools(); };
+    b.onclick = () => { state.ink = idx; eng.ink = ink; if(!['pencil','brush','roller'].includes(state.tool))state.tool='pencil'; eng.tool=state.tool; say('texture'); buildInks(); buildTools(); rowTex.classList.remove('open'); $('#btnTexture').setAttribute('aria-expanded','false'); };
     rowTex.appendChild(b);
   });
   if (pages > 1) {
@@ -1291,6 +1291,7 @@ input.addEventListener('pointerdown', (e) => {
   if (!allowed(e)) return;
   if (selected) deselect();
   const p = pt(e);
+  if(state.tool==='sticker'){stampSticker(p.x,p.y);return;}
 
   if (state.tool === 'bucket' || state.tool === 'roller') {
     const keep = eng.ink;
@@ -1302,9 +1303,9 @@ input.addEventListener('pointerdown', (e) => {
   if (drawing) return;
   drawing = true; activeId = e.pointerId;
   input.setPointerCapture(e.pointerId);
-  eng.ink = state.tool === 'pencil' ? INKS[0] : (inkList()[state.ink] || INKS[0]);
+  eng.ink = inkList()[state.ink] || INKS[0];
   eng.color = state.color; eng.tool = state.tool;
-  eng.strokeStart(p.x, p.y, e.pressure || 1);
+  if(eng.strokeStart(p.x,p.y,e.pressure||1)===false){drawing=false;activeId=null;input.releasePointerCapture(e.pointerId);}
 });
 
 input.addEventListener('pointermove', (e) => {
@@ -1322,6 +1323,8 @@ const endStroke = (e) => {
 };
 input.addEventListener('pointerup', endStroke);
 input.addEventListener('pointercancel', endStroke);
+input.addEventListener('lostpointercapture',endStroke);
+window.addEventListener('blur',()=>endStroke());
 
 // ---------------------------------------------------------------- สติกเกอร์
 function place(s) {
@@ -1534,10 +1537,8 @@ function flat() {
 async function saveWork() {
   const c = flat();
   const blob = await new Promise(r => c.toBlob(r, 'image/png'));
-  if (db && blob) {
-    db.transaction('works', 'readwrite').objectStore('works')
-      .put({ id: Date.now(), blob });
-  }
+  if(!blob){showHint('บันทึกไม่สำเร็จ ลองอีกครั้งนะ');return;}
+  try{if(db){await new Promise((resolve,reject)=>{const tx=db.transaction('works','readwrite');tx.objectStore('works').put({id:Date.now(),blob});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error)});}else{await exportImage(blob)}}catch{showHint('พื้นที่บันทึกไม่พอ กำลังดาวน์โหลดภาพแทน');await exportImage(blob);return;}
   say('saved'); chime(true); const f = $('#flash');
   f.classList.add('on');
   setTimeout(() => f.classList.remove('on'), 850);
@@ -1601,6 +1602,100 @@ function demoCanvas(){
 $('#btnDemo').onclick=()=>{sheet('<button class="close-sheet" aria-label="Close preview">×</button><h2>ไอเดียเล็ก ๆ สำหรับศิลปินตัวน้อย</h2><div id="demoArt"></div><div class="demo-swatches" id="demoTextures"></div><p class="note">ตัวอย่างสีวอเตอร์คัลเลอร์และพื้นผิวผ้า • เลือกพื้นผิวแล้วแตะช่องในภาพเพื่อเติมลายได้เลย<br>เสียงตัวอย่างเป็นเสียงสังเคราะห์ผู้ชายที่ปรับโทนให้สูงขึ้น ยังไม่ใช่เสียงเด็กผู้ชายจริง</p><button class="mbtn" id="sampleVoice">▶ ฟังเสียงภาษาอังกฤษ</button>',()=>{let c=demoCanvas();c.className='demo-art';$('#demoArt').append(c);['linen','woodgrain','watercolor'].forEach(id=>{let c=document.createElement('canvas');c.width=c.height=72;let x=c.getContext('2d');x.fillStyle=x.createPattern(eng.tile(id,id==='woodgrain'?'#bb8b59':'#d69686'),'repeat');x.fillRect(0,0,72,72);c.title=id;$('#demoTextures').append(c)});$('#sheetBox .close-sheet').onclick=closeSheet;$('#sampleVoice').onclick=()=>{if(!soundEnabled)$('#btnSound').click();say('welcome')}})};
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
 
+// Sticker Play: preserve the original line art and add region-locked drawing.
+const STICKER_VERSION='sticker-play-v5.1';
+const TOOL_LABELS={pencil:'ดินสอ',brush:'พู่กัน',eraser:'ยางลบ',bucket:'ถังสี',roller:'ลูกกลิ้ง',sticker:'สติกเกอร์'};
+let smartEnabled=true, pendingSticker=null, hintTimer;
+function showHint(message){const e=$('#hint');e.textContent=message;e.classList.add('on');clearTimeout(hintTimer);hintTimer=setTimeout(()=>e.classList.remove('on'),2600)}
+function stickerIcon(id){
+ const face=`<g fill="#694534" stroke="none"><ellipse cx="40" cy="58" rx="2.4" ry="3"/><ellipse cx="57" cy="58" rx="2.4" ry="3"/></g><path d="M43 66q6 6 11 0" fill="none" stroke="#694534" stroke-width="2.5" stroke-linecap="round"/>`;
+ const art={
+ pencil:`<g transform="rotate(24 50 50)"><path d="M35 78V24q0-8 8-8h15q8 0 8 8v54L50 96Z" fill="#ffca47"/><path d="M36 35h29v41H36" fill="#ffc83d"/><path d="M39 38v34" stroke="#ffe986" stroke-width="5"/><path d="M36 77h29L50 96Z" fill="#f2cf9f"/><path d="m45 89 5 7 5-7" fill="#654737"/><path d="M35 28V23q0-7 8-7h15q8 0 8 7v5Z" fill="#f58ead"/><path d="M35 29h31v8H35Z" fill="#e5dbcc"/>${face}</g><path d="m72 12 16 6v15q-3 9-16 15-12-6-15-15V18Z" fill="#73bdc4" stroke="#fff" stroke-width="4"/><path d="m65 29 5 5 9-11" fill="none" stroke="#fff" stroke-width="4"/>`,
+ brush:`<g transform="rotate(24 50 50)"><path d="M42 48h17l-3 41q-6 13-12 0Z" fill="#edb76e"/><path d="M45 58v24" stroke="#ffdb9b" stroke-width="3"/><path d="M36 38h28v16H36Z" fill="#d9ded5"/><path d="M36 40c-8-21 11-23 22-34 1 15 15 24 6 34Z" fill="#965831"/><path d="M42 32q0-10 9-17M51 35l7-15" stroke="#c88a55" stroke-width="3"/><path d="M38 40h24v7H38Z" fill="#79bdbe"/></g>`,
+ eraser:`<g transform="rotate(25 50 50)"><rect x="27" y="14" width="47" height="77" rx="12" fill="#f79fb4"/><path d="M28 43h45v25H28Z" fill="#fff3d5"/><path d="M35 23h25" stroke="#ffd6dd" stroke-width="5"/>${face}</g>`,
+ bucket:`<path d="M25 36q25-40 50 0" fill="none" stroke="#657c87" stroke-width="7"/><path d="m21 33 6 48q22 17 46 0l6-48Z" fill="#95d7dc"/><ellipse cx="50" cy="34" rx="29" ry="10" fill="#dff3e9"/><ellipse cx="50" cy="34" rx="23" ry="6" fill="#49aaca"/><path d="M68 35v20q0 7 6 7t6-7V38" fill="#49aaca" stroke="none"/>${face}`,
+ roller:`<path d="M63 34v22H47v18" fill="none" stroke="#768181" stroke-width="7"/><rect x="39" y="65" width="17" height="31" rx="8" fill="#e5a16d"/><rect x="14" y="13" width="68" height="32" rx="12" fill="#89be78"/><path d="M23 18v23M35 18v23M47 18v23M59 18v23M71 18v23" stroke="#c8e3a8" stroke-width="3"/><path d="M19 20h56" stroke="#f3f6cc" stroke-width="3"/>`,
+ sticker:`<path d="m49 9 13 24 28 5-19 22 4 29-26-13-25 13 4-29L9 38l28-5Z" fill="#ffd45a"/><g transform="translate(0 -9)">${face}</g><path d="M58 85q13-3 21-21l-4 25Z" fill="#fffaf0" stroke="#d6b16d" stroke-width="2"/>`
+ }[id];
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 108" aria-hidden="true"><defs><filter id="cut-${id}" x="-25%" y="-25%" width="150%" height="150%"><feMorphology in="SourceAlpha" operator="dilate" radius="3" result="edge"/><feFlood flood-color="#fffdf6"/><feComposite in2="edge" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#cut-${id})" stroke="#75513b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">${art}</g></svg>`;
+}
+// Linear-time flood: each pixel enters the queue once, even on a large blank sheet.
+Engine.flood=function(block,sx,sy){
+ if(sx<0||sy<0||sx>=W||sy>=H||block[sy*W+sx])return null;
+ const seen=new Uint8Array(W*H),queue=new Int32Array(W*H);let head=0,tail=0;
+ const seed=sy*W+sx;seen[seed]=1;queue[tail++]=seed;
+ while(head<tail){const i=queue[head++],x=i%W;
+  if(x>0&&!block[i-1]&&!seen[i-1]){seen[i-1]=1;queue[tail++]=i-1}
+  if(x<W-1&&!block[i+1]&&!seen[i+1]){seen[i+1]=1;queue[tail++]=i+1}
+  if(i>=W&&!block[i-W]&&!seen[i-W]){seen[i-W]=1;queue[tail++]=i-W}
+  if(i<W*(H-1)&&!block[i+W]&&!seen[i+W]){seen[i+W]=1;queue[tail++]=i+W}
+ }return seen;
+};
+// Each stroke is constrained to the connected region containing its first point.
+Engine.prototype.regionAt=function(x,y){
+ const sx=Math.floor(x),sy=Math.floor(y);if(sx<0||sy<0||sx>=W||sy>=H)return false;
+ const data=this.ctx.line.getImageData(0,0,W,H).data, walls=new Uint8Array(W*H);let count=0;
+ for(let i=0;i<walls.length;i++){walls[i]=data[i*4+3]>32?1:0;count+=walls[i]}
+ if(!count)return null;
+ // A start on the printed outline is ambiguous: wait for a start inside a region.
+ if(walls[sy*W+sx])return false;
+ const region=Engine.flood(walls,sx,sy),image=new ImageData(W,H);
+ for(let i=0;i<region.length;i++)image.data[i*4+3]=region[i]?255:0;
+ const mask=mk();mask.getContext('2d').putImageData(image,0,0);return mask;
+};
+const originalStart=Engine.prototype.strokeStart;
+Engine.prototype.strokeStart=function(x,y,pressure){
+ this._smartMask=null;
+ if(smartEnabled&&(this.tool==='pencil'||this.tool==='brush')){
+  const region=this.regionAt(x,y);if(region===false){showHint('เริ่มระบายด้านในเส้นนะจ๊ะ');return false}this._smartMask=region;
+ }
+ originalStart.call(this,x,y,pressure);return true;
+};
+const originalStamp=Engine.prototype.stamp;
+Engine.prototype.stamp=function(x,y,size,layers,eraser){
+ if(eraser)return originalStamp.call(this,x,y,size,layers,true);
+ const margin=Math.ceil(size*.75+3),left=Math.floor(x-margin),top=Math.floor(y-margin),side=margin*2+2;
+ this._dab ||= document.createElement('canvas');if(this._dab.width!==side){this._dab.width=this._dab.height=side}
+ const d=this._dab.getContext('2d');d.clearRect(0,0,side,side);d.save();d.translate(-left,-top);
+ if(this.ink.kind==='pattern'){
+  d.fillStyle=d.createPattern(this.tile(this.ink.pattern,this.color),'repeat');d.fillRect(left,top,side,side);
+  d.globalCompositeOperation='destination-in';d.drawImage(this.mask('round'),x-size/2,y-size/2,size,size);
+ }else{
+  const sprite=this.sprite(this.inkColor(this._n));
+  if(this.ink.spin){d.translate(x,y);d.rotate(Math.random()*Math.PI*2);d.drawImage(sprite,-size/2,-size/2,size,size)}
+  else d.drawImage(sprite,x-size/2,y-size/2,size,size);
+ }
+ d.restore();
+ if(this._smartMask){d.save();d.globalCompositeOperation='destination-in';d.drawImage(this._smartMask,-left,-top);d.restore()}
+ this.history.touch('paint',left,top,left+side,top+side);
+ const c=this.ctx.paint;c.save();c.globalAlpha=this.ink.alpha||1;c.drawImage(this._dab,left,top);c.restore();
+ this._n++;this._dirty=true;
+};
+const originalEnd=Engine.prototype.strokeEnd;
+Engine.prototype.strokeEnd=function(){originalEnd.call(this);this._smartMask=null};
+// Stamp stickers directly into the art: undo/redo, erasing and PNG export all include them.
+function stampSticker(x,y){
+ if(!pendingSticker)return;
+ const size=180,left=Math.max(0,Math.min(W-size,x-size/2)),top=Math.max(0,Math.min(H-size,y-size/2));
+ eng.history.begin();eng.history.touch('paint',left,top,left+size,top+size);
+ eng.ctx.paint.drawImage(pendingSticker,left,top,size,size);eng.history.commit();eng._dirty=true;refresh();chime();
+}
+openStickerPicker=function(){
+ sheet('<h2>เลือก แล้วแตะแปะได้เลย!</h2><p class="note">แตะบนกระดาษเพื่อแปะซ้ำ • กดย้อนกลับเพื่อเอาออก</p><div class="pickgrid" id="sg"></div>',()=>{
+ STICKERS.forEach((svg,i)=>{const b=document.createElement('button');b.innerHTML=svg;b.setAttribute('aria-label','Sticker '+(i+1));b.onclick=async()=>{b.disabled=true;const im=new Image();im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);try{await im.decode();pendingSticker=im;state.tool=eng.tool='sticker';closeSheet();buildTools();showHint('แตะตรงที่อยากแปะได้เลย!')}catch{b.disabled=false;showHint('โหลดสติกเกอร์ไม่สำเร็จ ลองอีกครั้งนะ')}};$('#sg').append(b)})
+ });
+};
+const baseBuildTools=buildTools;
+buildTools=function(){baseBuildTools();[...rowTool.children].forEach((b,i)=>{const id=TOOLS[i];b.innerHTML=stickerIcon(id);b.dataset.label=TOOL_LABELS[id];b.title=TOOL_LABELS[id]+(id==='pencil'?'อัจฉริยะ':'')});input.classList.toggle('stamping',state.tool==='sticker');updateTextureChip()};
+function updateTextureChip(){const chip=$('#textureChip');if(!chip)return;const ink=inkList()[state.ink]||INKS[0];chip.replaceChildren(inkPreview(ink));$('#textureName').textContent=INK_NAMES[ink.id]||ink.id.replace('p-','')}
+$('#btnTexture').onclick=()=>{const open=rowTex.classList.toggle('open');$('#btnTexture').setAttribute('aria-expanded',open)};
+$('#btnSmart').onclick=()=>{smartEnabled=!smartEnabled;$('#btnSmart').classList.toggle('active',smartEnabled);$('#btnSmart').setAttribute('aria-pressed',smartEnabled);$('#btnSmart').textContent=smartEnabled?'✓ ไม่เลยขอบ':'วาดอิสระ';showHint(smartEnabled?'ดินสอและพู่กันจะไม่เลยขอบ':'วาดได้อิสระแล้วจ้ะ')};
+$('#btnArt').onclick=openArtPicker;
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#rowTex,#btnTexture')){rowTex.classList.remove('open');$('#btnTexture').setAttribute('aria-expanded','false')}});
+const baseSheet=sheet;
+sheet=function(html,after){baseSheet('<button id="sheetClose" aria-label="ปิด">×</button>'+html,()=>{$('#sheetClose').onclick=closeSheet;if(after)after()})};
+document.documentElement.dataset.version=STICKER_VERSION;
+
 // ---------------------------------------------------------------- เริ่มทำงาน
 async function boot() {
   await openDB();
@@ -1618,3 +1713,4 @@ boot();
 </script>
 </body>
 </html>
+

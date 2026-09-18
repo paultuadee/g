@@ -1,11 +1,11 @@
 {
-  "name": "Little Art Studio",
-  "short_name": "Art Studio",
+  "name": "Sticker Play · สมุดศิลปะของหนู",
+  "short_name": "Sticker Play",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f1e6d5",
-  "theme_color": "#f1e6d5",
+  "background_color": "#fffaf0",
+  "theme_color": "#ffd6b7",
   "icons": [
     {
       "src": "icon.svg",
