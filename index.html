@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#ffd6b7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="ระบายสี">
-<title>Sticker Play · สมุดศิลปะของหนู</title>
+<meta name="apple-mobile-web-app-title" content="Coloring">
+<title>Little Art Studio</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.svg">
 <style>
@@ -114,11 +114,11 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#BFE0F
     <ellipse cx="24" cy="62" rx="10" ry="4.5" fill="#fff" opacity=".4"/>
   </svg>
 
-  <div id="topbar"><div class="brand"><span class="brand-mark">✿</span><div><strong>Sticker Play</strong><small>สมุดศิลปะของหนู</small></div></div><button class="softbtn active" id="btnSmart" aria-pressed="true" title="ดินสอและพู่กันวาดไม่เลยขอบ">✓ ไม่เลยขอบ</button><button class="softbtn" id="btnArt" aria-label="เลือกภาพระบายสี"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="3" width="24" height="26" rx="5" fill="#fff" stroke="#b1885e" stroke-width="2"/><circle cx="21" cy="11" r="4" fill="#f7bf48"/><path d="m7 25 7-12 5 8 3-4 4 8" fill="#91bc6d"/></svg><span>เลือกรูป</span></button><button class="softbtn" id="btnDemo">ดูตัวอย่าง ✧</button><button class="softbtn" id="btnSound" aria-pressed="false" title="เปิดเสียงเอฟเฟกต์และเสียงพูดภาษาอังกฤษ">เสียง: ปิด</button>
-    <button class="topbtn" id="btnUndo" aria-label="ย้อนกลับ"></button>
-    <button class="topbtn" id="btnRedo" aria-label="ทำซ้ำ"></button>
-    <button class="topbtn" id="btnSave" aria-label="บันทึก"></button>
-    <button class="topbtn" id="btnPhoto" aria-label="เมนูผู้ปกครอง"></button>
+  <div id="topbar"><button class="softbtn" id="btnArt" aria-label="Choose a picture"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="3" width="24" height="26" rx="5" fill="#fff" stroke="#b1885e" stroke-width="2"/><circle cx="21" cy="11" r="4" fill="#f7bf48"/><path d="m7 25 7-12 5 8 3-4 4 8" fill="#91bc6d"/></svg><span>Pictures</span></button><button class="softbtn" id="btnDemo">ดูตัวอย่าง ✧</button><button class="softbtn" id="btnSound" aria-pressed="false" title="Toggle sound effects and English voice">Sound off</button>
+    <button class="topbtn" id="btnUndo" aria-label="Undo"></button>
+    <button class="topbtn" id="btnRedo" aria-label="Redo"></button>
+    <button class="topbtn" id="btnSave" aria-label="Save"></button>
+    <button class="topbtn" id="btnPhoto" aria-label="More options"></button>
   </div>
 
   <div id="stage">
@@ -129,11 +129,11 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#BFE0F
       <canvas id="cLine"></canvas>
       <div id="stickers"></div>
       <div id="input"></div>
-      <button id="stickerKill" aria-label="ลบสติกเกอร์"></button>
+      <button id="stickerKill" aria-label="Remove sticker"></button>
     </div>
   </div>
 
-  <div id="dock"><div class="row" id="rowTool"></div><div class="palette-stack"><div class="row" id="rowColor"></div><div class="palette-note"><span>เลือกสี แล้ววาดกันเลย!</span><button id="btnTexture" aria-expanded="false" aria-controls="rowTex"><span id="textureChip"></span>พื้นผิว · <span id="textureName">Smooth</span> ▴</button></div></div><div class="row" id="rowTex" aria-label="พื้นผิว"></div></div><div id="hint" role="status" aria-live="polite"></div>
+  <div id="dock"><div class="row" id="rowTool"></div><div class="palette-stack"><div class="row" id="rowColor"></div><div class="row" id="rowTex" aria-label="Textures"></div></div></div><div id="hint" role="status" aria-live="polite"></div>
 </div>
 
 <div id="flash" aria-hidden="true">
@@ -143,14 +143,14 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#BFE0F
 </div>
 
 <div id="sheet"><div id="sheetBox"></div></div>
-<div id="rot">หมุน iPad เป็นแนวนอน<br>เพื่อเริ่มระบายสี</div>
+<div id="rot">Turn your tablet sideways<br>to start coloring</div>
 
 <input type="file" id="filePick" accept="image/*" hidden>
 <script>
 (function(){
 "use strict";
 // ข้อมูลศิลป์ทั้งหมดของแอป
-// เพิ่มลาย เพิ่มสติกเกอร์ เพิ่มภาพระบายสี ทำได้ที่ไฟล์นี้ไฟล์เดียว
+// เพิ่มลาย เพิ่มสติกเกอร์ เพิ่มภาพColoring ทำได้ที่ไฟล์นี้ไฟล์เดียว
 
 const COLORS = [
   '#E8342A', '#F5901E', '#F7CB2F', '#5FB63B', '#2E86D8',
@@ -905,7 +905,7 @@ class Engine {
   }
   strokeEnd() { this.history.commit(); this.onChange(); }
 
-  // ------------------------------------------------------- ถังสีอัจฉริยะ
+  // ------------------------------------------------------- ถังสี (stays inside shapes)
   wallMask(gap) {
     if (this._wall && !this._dirty && this._gap === gap) return this._wall;
     const a = this.ctx.line.getImageData(0, 0, W, H).data;
@@ -1049,7 +1049,7 @@ class Engine {
   }
   // แปลงภาพพื้นหลังเป็นลายเส้น 3 ระดับ ทำงานบนเครื่องทั้งหมด
   // วิธีการ ทำให้ภาพเนียนก่อน แล้วแบ่งความสว่างเป็นชั้น ๆ
-  // เส้นคือรอยต่อระหว่างชั้น จึงได้เส้นที่ปิดเป็นวงและเทสีได้
+  // เส้นคือรอยต่อระหว่างชั้น จึงได้เส้นที่Closeเป็นวงและเทสีได้
   static boxBlur(src, r) {
     if (r < 1) return src.slice();
     const a = new Float32Array(W * H), b = new Float32Array(W * H);
@@ -1159,7 +1159,7 @@ const eng = new Engine({
   bg: $('#cBg'), fill: $('#cFill'), paint: $('#cPaint'), line: $('#cLine')
 });
 
-const TOOLS = ['pencil', 'brush', 'eraser', 'bucket', 'roller', 'sticker'];
+const TOOLS = ['pencil', 'brush', 'eraser', 'bucket', 'sticker'];
 const stickers = [];
 let selected = null;
 const state = { tool: 'pencil', color: COLORS[0], ink: 0, page: 0, kid: true };
@@ -1196,7 +1196,7 @@ function buildColors() {
 // ---------------------------------------------------------------- แถบพื้นผิว
 const rowTex = $('#rowTex');
 const PER = 6;
-function inkList() { return state.kid ? ['round','soft','crayon','p-linen','p-woodgrain','p-watercolor','p-grass','p-sand','p-hearts','p-stars','p-sky','p-candy'].map(id=>INKS.find(i=>i.id===id)) : INKS; }
+function inkList() { return ['round','p-grass','p-night','crayon','p-watercolor','p-linen','p-sky','p-sand','p-woodgrain','p-hearts','p-stars','p-candy'].map(id=>INKS.find(i=>i.id===id)); }
 function inkPreview(ink) {
   const c = document.createElement('canvas');
   c.width = c.height = 72;
@@ -1214,27 +1214,8 @@ function inkPreview(ink) {
   return c;
 }
 function buildInks() {
-  rowTex.innerHTML = '';
-  const list = inkList();
-  const pages = Math.ceil(list.length / PER);
-  state.page = Math.min(state.page, pages - 1);
-  const start = state.page * PER;
-  list.slice(start, start + PER).forEach((ink, i) => {
-    const idx = start + i;
-    const b = document.createElement('button');
-    b.className = 'swatch' + (idx === state.ink ? ' on' : '');
-    b.appendChild(inkPreview(ink)); b.dataset.label=INK_NAMES[ink.id] || ink.id.replace('p-',''); b.setAttribute('aria-label',b.dataset.label); b.setAttribute('aria-pressed',idx===state.ink);
-    b.onclick = () => { state.ink = idx; eng.ink = ink; if(!['pencil','brush','roller'].includes(state.tool))state.tool='pencil'; eng.tool=state.tool; say('texture'); buildInks(); buildTools(); rowTex.classList.remove('open'); $('#btnTexture').setAttribute('aria-expanded','false'); };
-    rowTex.appendChild(b);
-  });
-  if (pages > 1) {
-    const p = document.createElement('button');
-    p.id = 'page'; p.textContent = `More · ${state.page+1}/${pages} →`; p.setAttribute('aria-label','More textures');
-    p.onclick = () => { state.page = (state.page + 1) % pages; buildInks(); };
-    rowTex.appendChild(p);
-  }
+ rowTex.innerHTML='';inkList().forEach((ink,idx)=>{const b=document.createElement('button');b.className='swatch'+(idx===state.ink?' on':'');b.dataset.label=INK_NAMES[ink.id]||ink.id.replace('p-','');b.title=b.dataset.label;b.setAttribute('aria-label',b.dataset.label);b.setAttribute('aria-pressed',idx===state.ink);b.append(inkPreview(ink));b.onclick=()=>{state.ink=idx;eng.ink=ink;if(!['pencil','brush','bucket'].includes(state.tool))state.tool=eng.tool='pencil';say('texture');buildInks();buildTools()};rowTex.append(b)});
 }
-
 // ---------------------------------------------------------------- แถบเครื่องมือ
 const rowTool = $('#rowTool');
 function buildTools() {
@@ -1293,9 +1274,9 @@ input.addEventListener('pointerdown', (e) => {
   const p = pt(e);
   if(state.tool==='sticker'){stampSticker(p.x,p.y);return;}
 
-  if (state.tool === 'bucket' || state.tool === 'roller') {
+  if (state.tool === 'bucket') {
     const keep = eng.ink;
-    if (state.tool === 'bucket') eng.ink = INKS[0];
+    eng.ink = inkList()[state.ink] || INKS[0];
     eng.fillAt(p.x, p.y, 3);
     eng.ink = keep;
     return;
@@ -1408,7 +1389,7 @@ function bindSticker(s) {
 }
 
 function openStickerPicker() {
-  sheet(`<h2>เลือกสติกเกอร์</h2><div class="pickgrid" id="sg"></div>`, () => {
+  sheet(`<h2>Choose stickers</h2><div class="pickgrid" id="sg"></div>`, () => {
     const g = $('#sg');
     STICKERS.forEach(sv => {
       const b = document.createElement('button');
@@ -1430,14 +1411,13 @@ function closeSheet() { sheetEl.classList.remove('on'); }
 sheetEl.addEventListener('pointerdown', (e) => { if (e.target === sheetEl) closeSheet(); });
 
 function openParentMenu() {
-  sheet(`<h2>เมนูผู้ปกครอง</h2><div class="mrow">
-    <button class="mbtn" id="mPick">เลือกภาพระบายสี</button>
-    <button class="mbtn" id="mFree">กระดาษเปล่า วาดอิสระ</button>
-    <button class="mbtn" id="mPhoto">นำรูปจาก iPad เข้ามา</button>
-    <button class="mbtn" id="mLine">แปลงรูปเป็นลายเส้น</button>
-    <button class="mbtn" id="mGal">ผลงานที่บันทึกไว้</button>
-    <button class="mbtn" id="mMode">${state.kid ? 'เปิดโหมดโตขึ้น' : 'กลับโหมดเด็กเล็ก'}</button>
-    <button class="mbtn danger" id="mClear">เริ่มภาพใหม่</button></div>`, () => {
+  sheet(`<h2>More options</h2><div class="mrow">
+    <button class="mbtn" id="mPick">Choose a picture</button>
+    <button class="mbtn" id="mFree">Blank paper</button>
+    <button class="mbtn" id="mPhoto">Import a photo</button>
+    <button class="mbtn" id="mLine">Turn photo into outlines</button>
+    <button class="mbtn" id="mGal">My pictures</button>
+    <button class="mbtn danger" id="mClear">New blank picture</button></div>`, () => {
     $('#mPick').onclick = openArtPicker;
     $('#mFree').onclick = () => {
       closeSheet();
@@ -1448,10 +1428,6 @@ function openParentMenu() {
     $('#mPhoto').onclick = () => { closeSheet(); $('#filePick').click(); };
     $('#mLine').onclick = openLineLevels;
     $('#mGal').onclick = openGallery;
-    $('#mMode').onclick = () => {
-      state.kid = !state.kid; state.page = 0; state.ink = 0;
-      eng.ink = INKS[0]; buildInks(); buildTools(); closeSheet();
-    };
     $('#mClear').onclick = () => {
       closeSheet();
       stickers.splice(0).forEach(s => s.el.remove());
@@ -1475,7 +1451,7 @@ const BLANK_THUMB = `<svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/sv
   <path d="M66 86 l30 6" stroke="#9A7A2E" stroke-width="3"/></svg>`;
 
 function openArtPicker() {
-  sheet(`<h2>เลือกภาพระบายสี</h2><div class="pickgrid" id="ag"></div>`, () => {
+  sheet(`<h2>Choose a picture</h2><div class="pickgrid" id="ag"></div>`, () => {
     const g = $('#ag');
     const blank = document.createElement('button');
     blank.innerHTML = BLANK_THUMB;
@@ -1499,10 +1475,10 @@ function openArtPicker() {
   });
 }
 function openLineLevels() {
-  sheet(`<h2>ระดับความยาก</h2><div class="mrow">
-    <button class="mbtn" data-l="0">ง่าย เส้นน้อย</button>
-    <button class="mbtn" data-l="1">ปานกลาง</button>
-    <button class="mbtn" data-l="2">ยาก เส้นเยอะ</button></div>`, () => {
+  sheet(`<h2>Outline detail</h2><div class="mrow">
+    <button class="mbtn" data-l="0">Simple</button>
+    <button class="mbtn" data-l="1">Medium</button>
+    <button class="mbtn" data-l="2">Detailed</button></div>`, () => {
     sheetBox.querySelectorAll('[data-l]').forEach(b => {
       b.onclick = () => { closeSheet(); setTimeout(() => eng.photoToLineArt(+b.dataset.l), 30); };
     });
@@ -1517,7 +1493,7 @@ $('#filePick').addEventListener('change', (e) => {
   e.target.value = '';
 });
 
-// ---------------------------------------------------------------- บันทึกผลงาน
+// ---------------------------------------------------------------- Saveผลงาน
 let db = null;
 function openDB() {
   return new Promise((res) => {
@@ -1537,15 +1513,15 @@ function flat() {
 async function saveWork() {
   const c = flat();
   const blob = await new Promise(r => c.toBlob(r, 'image/png'));
-  if(!blob){showHint('บันทึกไม่สำเร็จ ลองอีกครั้งนะ');return;}
-  try{if(db){await new Promise((resolve,reject)=>{const tx=db.transaction('works','readwrite');tx.objectStore('works').put({id:Date.now(),blob});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error)});}else{await exportImage(blob)}}catch{showHint('พื้นที่บันทึกไม่พอ กำลังดาวน์โหลดภาพแทน');await exportImage(blob);return;}
+  if(!blob){showHint('Could not save. Please try again.');return;}
+  try{if(db){await new Promise((resolve,reject)=>{const tx=db.transaction('works','readwrite');tx.objectStore('works').put({id:Date.now(),blob});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error)});}else{await exportImage(blob)}}catch{showHint('Storage is full. Downloading your picture instead.');await exportImage(blob);return;}
   say('saved'); chime(true); const f = $('#flash');
   f.classList.add('on');
   setTimeout(() => f.classList.remove('on'), 850);
 }
 function openGallery() {
-  sheet(`<h2>ผลงานที่บันทึกไว้</h2>
-    <p style="font-size:13px;color:#5B7387">แตะภาพเพื่อบันทึกลงแอป Photos</p>
+  sheet(`<h2>My pictures</h2>
+    <p style="font-size:13px;color:#5B7387">Tap a picture to download or share it.</p>
     <div id="gal"></div>`, () => {
     if (!db) return;
     const req = db.transaction('works').objectStore('works').getAll();
@@ -1561,7 +1537,7 @@ function openGallery() {
   });
 }
 async function exportImage(blob) {
-  const file = new File([blob], 'ผลงาน.png', { type: 'image/png' });
+  const file = new File([blob], 'my-picture.png', { type: 'image/png' });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try { await navigator.share({ files: [file] }); return; } catch (e) { }
   }
@@ -1583,7 +1559,7 @@ function chime(success=false){
 }
 function say(key){if(!soundEnabled||!('speechSynthesis' in window))return; speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(PHRASES[key]||key+'!');const voices=speechSynthesis.getVoices().filter(v=>/^en[-_]/i.test(v.lang));u.voice=voices.find(v=>/David|Mark|Daniel|Alex|Guy|James/i.test(v.name))||voices[0]||null;u.lang='en-US';u.pitch=1.35;u.rate=.93;u.volume=.7;speechSynthesis.speak(u);}
 document.addEventListener('click',e=>{if(e.target.closest('button'))chime()},true);
-$('#btnSound').onclick=()=>{soundEnabled=!soundEnabled;$('#btnSound').textContent=soundEnabled?'เสียง: เปิด':'เสียง: ปิด';$('#btnSound').classList.toggle('active',soundEnabled);$('#btnSound').setAttribute('aria-pressed',soundEnabled);if(soundEnabled){chime();say('welcome')}else{window.speechSynthesis?.cancel();audioContext?.suspend()}};
+$('#btnSound').onclick=()=>{soundEnabled=!soundEnabled;$('#btnSound').textContent=soundEnabled?'Sound on':'Sound off';$('#btnSound').classList.toggle('active',soundEnabled);$('#btnSound').setAttribute('aria-pressed',soundEnabled);if(soundEnabled){chime();say('welcome')}else{window.speechSynthesis?.cancel();audioContext?.suspend()}};
 input.addEventListener('pointerdown',()=>chime());
 document.addEventListener('visibilitychange',()=>{if(document.hidden){window.speechSynthesis?.cancel();audioContext?.suspend()}});
 function demoCanvas(){
@@ -1599,18 +1575,18 @@ function demoCanvas(){
  x.font='600 23px Trebuchet MS';x.textAlign='center';x.fillStyle='#776451';x.fillText('Small hands. Big adventures.',500,607);
  return c;
 }
-$('#btnDemo').onclick=()=>{sheet('<button class="close-sheet" aria-label="Close preview">×</button><h2>ไอเดียเล็ก ๆ สำหรับศิลปินตัวน้อย</h2><div id="demoArt"></div><div class="demo-swatches" id="demoTextures"></div><p class="note">ตัวอย่างสีวอเตอร์คัลเลอร์และพื้นผิวผ้า • เลือกพื้นผิวแล้วแตะช่องในภาพเพื่อเติมลายได้เลย<br>เสียงตัวอย่างเป็นเสียงสังเคราะห์ผู้ชายที่ปรับโทนให้สูงขึ้น ยังไม่ใช่เสียงเด็กผู้ชายจริง</p><button class="mbtn" id="sampleVoice">▶ ฟังเสียงภาษาอังกฤษ</button>',()=>{let c=demoCanvas();c.className='demo-art';$('#demoArt').append(c);['linen','woodgrain','watercolor'].forEach(id=>{let c=document.createElement('canvas');c.width=c.height=72;let x=c.getContext('2d');x.fillStyle=x.createPattern(eng.tile(id,id==='woodgrain'?'#bb8b59':'#d69686'),'repeat');x.fillRect(0,0,72,72);c.title=id;$('#demoTextures').append(c)});$('#sheetBox .close-sheet').onclick=closeSheet;$('#sampleVoice').onclick=()=>{if(!soundEnabled)$('#btnSound').click();say('welcome')}})};
+$('#btnDemo').onclick=()=>{sheet('<button class="close-sheet" aria-label="Close preview">×</button><h2>A little inspiration</h2><div id="demoArt"></div><div class="demo-swatches" id="demoTextures"></div><p class="note">Choose a texture, then paint or fill a shape.<br>Voice preview uses a system voice, not a recorded child voice.</p><button class="mbtn" id="sampleVoice">▶ Hear the English voice</button>',()=>{let c=demoCanvas();c.className='demo-art';$('#demoArt').append(c);['linen','woodgrain','watercolor'].forEach(id=>{let c=document.createElement('canvas');c.width=c.height=72;let x=c.getContext('2d');x.fillStyle=x.createPattern(eng.tile(id,id==='woodgrain'?'#bb8b59':'#d69686'),'repeat');x.fillRect(0,0,72,72);c.title=id;$('#demoTextures').append(c)});$('#sheetBox .close-sheet').onclick=closeSheet;$('#sampleVoice').onclick=()=>{if(!soundEnabled)$('#btnSound').click();say('welcome')}})};
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
 
 // Sticker Play: preserve the original line art and add region-locked drawing.
-const STICKER_VERSION='sticker-play-v5.1';
-const TOOL_LABELS={pencil:'ดินสอ',brush:'พู่กัน',eraser:'ยางลบ',bucket:'ถังสี',roller:'ลูกกลิ้ง',sticker:'สติกเกอร์'};
-let smartEnabled=true, pendingSticker=null, hintTimer;
+const STICKER_VERSION='sticker-play-v6.0';
+const TOOL_LABELS={pencil:'Pencil',brush:'Brush',eraser:'Eraser',bucket:'Fill',sticker:'Stickers'};
+let pendingSticker=null, hintTimer;
 function showHint(message){const e=$('#hint');e.textContent=message;e.classList.add('on');clearTimeout(hintTimer);hintTimer=setTimeout(()=>e.classList.remove('on'),2600)}
 function stickerIcon(id){
  const face=`<g fill="#694534" stroke="none"><ellipse cx="40" cy="58" rx="2.4" ry="3"/><ellipse cx="57" cy="58" rx="2.4" ry="3"/></g><path d="M43 66q6 6 11 0" fill="none" stroke="#694534" stroke-width="2.5" stroke-linecap="round"/>`;
  const art={
- pencil:`<g transform="rotate(24 50 50)"><path d="M35 78V24q0-8 8-8h15q8 0 8 8v54L50 96Z" fill="#ffca47"/><path d="M36 35h29v41H36" fill="#ffc83d"/><path d="M39 38v34" stroke="#ffe986" stroke-width="5"/><path d="M36 77h29L50 96Z" fill="#f2cf9f"/><path d="m45 89 5 7 5-7" fill="#654737"/><path d="M35 28V23q0-7 8-7h15q8 0 8 7v5Z" fill="#f58ead"/><path d="M35 29h31v8H35Z" fill="#e5dbcc"/>${face}</g><path d="m72 12 16 6v15q-3 9-16 15-12-6-15-15V18Z" fill="#73bdc4" stroke="#fff" stroke-width="4"/><path d="m65 29 5 5 9-11" fill="none" stroke="#fff" stroke-width="4"/>`,
+ pencil:`<g transform="rotate(24 50 50)"><path d="M35 78V24q0-8 8-8h15q8 0 8 8v54L50 96Z" fill="#ffca47"/><path d="M36 35h29v41H36" fill="#ffc83d"/><path d="M39 38v34" stroke="#ffe986" stroke-width="5"/><path d="M36 77h29L50 96Z" fill="#f2cf9f"/><path d="m45 89 5 7 5-7" fill="#654737"/><path d="M35 28V23q0-7 8-7h15q8 0 8 7v5Z" fill="#f58ead"/><path d="M35 29h31v8H35Z" fill="#e5dbcc"/>${face}</g>`,
  brush:`<g transform="rotate(24 50 50)"><path d="M42 48h17l-3 41q-6 13-12 0Z" fill="#edb76e"/><path d="M45 58v24" stroke="#ffdb9b" stroke-width="3"/><path d="M36 38h28v16H36Z" fill="#d9ded5"/><path d="M36 40c-8-21 11-23 22-34 1 15 15 24 6 34Z" fill="#965831"/><path d="M42 32q0-10 9-17M51 35l7-15" stroke="#c88a55" stroke-width="3"/><path d="M38 40h24v7H38Z" fill="#79bdbe"/></g>`,
  eraser:`<g transform="rotate(25 50 50)"><rect x="27" y="14" width="47" height="77" rx="12" fill="#f79fb4"/><path d="M28 43h45v25H28Z" fill="#fff3d5"/><path d="M35 23h25" stroke="#ffd6dd" stroke-width="5"/>${face}</g>`,
  bucket:`<path d="M25 36q25-40 50 0" fill="none" stroke="#657c87" stroke-width="7"/><path d="m21 33 6 48q22 17 46 0l6-48Z" fill="#95d7dc"/><ellipse cx="50" cy="34" rx="29" ry="10" fill="#dff3e9"/><ellipse cx="50" cy="34" rx="23" ry="6" fill="#49aaca"/><path d="M68 35v20q0 7 6 7t6-7V38" fill="#49aaca" stroke="none"/>${face}`,
@@ -1646,8 +1622,8 @@ Engine.prototype.regionAt=function(x,y){
 const originalStart=Engine.prototype.strokeStart;
 Engine.prototype.strokeStart=function(x,y,pressure){
  this._smartMask=null;
- if(smartEnabled&&(this.tool==='pencil'||this.tool==='brush')){
-  const region=this.regionAt(x,y);if(region===false){showHint('เริ่มระบายด้านในเส้นนะจ๊ะ');return false}this._smartMask=region;
+ if(this.tool==='pencil'){
+  const region=this.regionAt(x,y);if(region===false){showHint('Start inside a shape to color it.');return false}this._smartMask=region;
  }
  originalStart.call(this,x,y,pressure);return true;
 };
@@ -1681,20 +1657,44 @@ function stampSticker(x,y){
  eng.ctx.paint.drawImage(pendingSticker,left,top,size,size);eng.history.commit();eng._dirty=true;refresh();chime();
 }
 openStickerPicker=function(){
- sheet('<h2>เลือก แล้วแตะแปะได้เลย!</h2><p class="note">แตะบนกระดาษเพื่อแปะซ้ำ • กดย้อนกลับเพื่อเอาออก</p><div class="pickgrid" id="sg"></div>',()=>{
- STICKERS.forEach((svg,i)=>{const b=document.createElement('button');b.innerHTML=svg;b.setAttribute('aria-label','Sticker '+(i+1));b.onclick=async()=>{b.disabled=true;const im=new Image();im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);try{await im.decode();pendingSticker=im;state.tool=eng.tool='sticker';closeSheet();buildTools();showHint('แตะตรงที่อยากแปะได้เลย!')}catch{b.disabled=false;showHint('โหลดสติกเกอร์ไม่สำเร็จ ลองอีกครั้งนะ')}};$('#sg').append(b)})
+ sheet('<h2>Pick a sticker!</h2><p class="note">Tap the paper to place it. Tap again for more. Undo removes the last one.</p><div class="pickgrid" id="sg"></div>',()=>{
+ STICKERS.forEach((svg,i)=>{const b=document.createElement('button');b.innerHTML=svg;b.setAttribute('aria-label','Sticker '+(i+1));b.onclick=async()=>{b.disabled=true;const im=new Image();im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);try{await im.decode();pendingSticker=im;state.tool=eng.tool='sticker';closeSheet();buildTools();showHint('Tap the paper to place your sticker!')}catch{b.disabled=false;showHint('Could not load this sticker. Please try again.')}};$('#sg').append(b)})
  });
 };
 const baseBuildTools=buildTools;
-buildTools=function(){baseBuildTools();[...rowTool.children].forEach((b,i)=>{const id=TOOLS[i];b.innerHTML=stickerIcon(id);b.dataset.label=TOOL_LABELS[id];b.title=TOOL_LABELS[id]+(id==='pencil'?'อัจฉริยะ':'')});input.classList.toggle('stamping',state.tool==='sticker');updateTextureChip()};
+buildTools=function(){baseBuildTools();[...rowTool.children].forEach((b,i)=>{const id=TOOLS[i];b.innerHTML=stickerIcon(id);b.dataset.label=TOOL_LABELS[id];b.title=TOOL_LABELS[id]+(id==='pencil'?' (stays inside shapes)':'')});input.classList.toggle('stamping',state.tool==='sticker');updateTextureChip()};
 function updateTextureChip(){const chip=$('#textureChip');if(!chip)return;const ink=inkList()[state.ink]||INKS[0];chip.replaceChildren(inkPreview(ink));$('#textureName').textContent=INK_NAMES[ink.id]||ink.id.replace('p-','')}
-$('#btnTexture').onclick=()=>{const open=rowTex.classList.toggle('open');$('#btnTexture').setAttribute('aria-expanded',open)};
-$('#btnSmart').onclick=()=>{smartEnabled=!smartEnabled;$('#btnSmart').classList.toggle('active',smartEnabled);$('#btnSmart').setAttribute('aria-pressed',smartEnabled);$('#btnSmart').textContent=smartEnabled?'✓ ไม่เลยขอบ':'วาดอิสระ';showHint(smartEnabled?'ดินสอและพู่กันจะไม่เลยขอบ':'วาดได้อิสระแล้วจ้ะ')};
+
+
 $('#btnArt').onclick=openArtPicker;
-document.addEventListener('pointerdown',e=>{if(!e.target.closest('#rowTex,#btnTexture')){rowTex.classList.remove('open');$('#btnTexture').setAttribute('aria-expanded','false')}});
+
 const baseSheet=sheet;
-sheet=function(html,after){baseSheet('<button id="sheetClose" aria-label="ปิด">×</button>'+html,()=>{$('#sheetClose').onclick=closeSheet;if(after)after()})};
+sheet=function(html,after){baseSheet('<button id="sheetClose" aria-label="Close">×</button>'+html,()=>{$('#sheetClose').onclick=closeSheet;if(after)after()})};
 document.documentElement.dataset.version=STICKER_VERSION;
+
+// Natural-color materials do not change when a paint color is selected.
+Object.assign(PATTERNS.find(p=>p.id==='grass'),{tintable:false,draw(c,s){
+ c.fillStyle='#68a643';c.fillRect(0,0,s,s);
+ for(let i=0;i<240;i++){let x=(i*17.371)%s,y=(i*31.731)%s; c.strokeStyle=['#356b30','#8bc653','#4b8737','#afd76c'][i%4];c.lineWidth=.6+(i%3)*.3;c.beginPath();c.moveTo(x,y);c.quadraticCurveTo(x-2,y-4,x+(i%5)-2,y-6-i%6);c.stroke()}
+}});
+Object.assign(PATTERNS.find(p=>p.id==='night'),{tintable:false,draw(c,s){
+ c.fillStyle='#181f43';c.fillRect(0,0,s,s);
+ for(let i=0;i<24;i++){let x=(i*19.37+4)%s,y=(i*31.73+7)%s;c.fillStyle=i%3?'#d8e9ff':'#fff3b3';c.globalAlpha=.4+(i%4)*.2;c.beginPath();c.arc(x,y,i%5===0?1.1:.55,0,7);c.fill()}
+ c.globalAlpha=1;c.strokeStyle='#f5eece';c.lineWidth=.7;[[15,19],[45,47]].forEach(([x,y])=>{c.beginPath();c.moveTo(x-2,y);c.lineTo(x+2,y);c.moveTo(x,y-2);c.lineTo(x,y+2);c.stroke()});
+}});
+Object.assign(INK_NAMES,{'p-grass':'Grass','p-night':'Night sky','p-sky':'Clouds'});
+STICKERS.push(
+ sv('<path d="M65 10a36 36 0 1 0 25 58A32 32 0 0 1 65 10Z" fill="#ffda6c" stroke="#fff9e9" stroke-width="5"/><circle cx="34" cy="56" r="3" fill="#664b39"/><path d="M39 65q6 5 11 0" fill="none" stroke="#664b39" stroke-width="3"/>'),
+ sv('<path d="M17 80V55q0-18 18-18h24V20q0-12 12-12t12 12v46q0 16-14 16H39l-8 10-9-5Z" fill="#90c984" stroke="#fff" stroke-width="5"/><circle cx="72" cy="23" r="3" fill="#445f34"/><path d="m43 34 6-10 7 10m3-10 7-9" fill="#f0c761" stroke="#f0c761" stroke-width="3"/>'),
+ sv('<path d="M34 55h32v31q-16 10-32 0Z" fill="#ffe6b7" stroke="#fff" stroke-width="5"/><path d="M10 58q1-46 40-46t40 46Z" fill="#f58a91" stroke="#fff" stroke-width="5"/><g fill="#fff3d3"><circle cx="34" cy="34" r="7"/><circle cx="63" cy="43" r="9"/></g><circle cx="43" cy="72" r="3" fill="#684b35"/><circle cx="57" cy="72" r="3" fill="#684b35"/>'),
+ sv('<path d="M45 43C17 5 2 28 24 52 4 83 27 96 46 64M55 43C83 5 98 28 76 52 96 83 73 96 54 64" fill="#c5a2e7" stroke="#fff" stroke-width="5"/><rect x="44" y="33" width="12" height="43" rx="6" fill="#f7c565"/><circle cx="50" cy="30" r="9" fill="#f7c565"/>'),
+ sv('<path d="M17 82V44L50 13l33 31v38Z" fill="#f6bd84" stroke="#fff" stroke-width="5"/><path d="m10 47 40-36 40 36" fill="none" stroke="#dc8485" stroke-width="9" stroke-linecap="round"/><rect x="40" y="59" width="20" height="25" rx="8" fill="#91babe"/>'),
+ sv('<path d="M17 39q0-26 20-17 13-20 26 0 25-8 23 17v39H17Z" fill="#f2b4cf" stroke="#fff" stroke-width="5"/><path d="M15 43h73L79 86H24Z" fill="#b1d6e1" stroke="#fff" stroke-width="5"/><path d="M35 55v20m15-20v20m15-20v20" stroke="#7fb6c5" stroke-width="4"/>')
+);
+function historyIcon(direction,label,color){return `<svg viewBox="0 0 40 32" aria-hidden="true"><g fill="none" stroke="${color}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" ${direction==='right'?'transform="translate(40 0) scale(-1 1)"':''}><path d="M13 5 5 13l8 8M6 13h16q12 0 12 12"/></g></svg><span>${label}</span>`}
+btnUndo.innerHTML=historyIcon('left','Undo','#497ea8');btnRedo.innerHTML=historyIcon('right','Redo','#c78240');
+btnSave.innerHTML='<svg viewBox="0 0 40 32" aria-hidden="true"><path d="M20 3v17m-7-6 7 7 7-7M7 24v5h26v-5" fill="none" stroke="#4a9576" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/></svg><span>Save</span>';
+btnPhoto.innerHTML='<svg viewBox="0 0 40 32" aria-hidden="true"><g fill="#8d7964"><circle cx="9" cy="16" r="4"/><circle cx="20" cy="16" r="4"/><circle cx="31" cy="16" r="4"/></g></svg><span>More</span>';
 
 // ---------------------------------------------------------------- เริ่มทำงาน
 async function boot() {
@@ -1713,4 +1713,5 @@ boot();
 </script>
 </body>
 </html>
+
 

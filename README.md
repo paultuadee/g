@@ -1,31 +1,20 @@
-# Sticker Play · สมุดศิลปะของหนู
+# Little Art Studio
 
-แอประบายสีสำหรับเด็กอนุบาล ธีมสมุดสติกเกอร์ โทนพีชและเขียว ไอคอนกระดาษตัดแปะ พร้อมลายเส้นจากแอปเดิม
+An English-language preschool coloring app with a sticker-book theme.
 
-## วิธีเล่น
+- **Pencil** always stays inside the closed outline where a stroke begins. Start inside a shape, not on its outline. On blank paper it draws freely.
+- **Brush** draws freely across outlines.
+- **Fill** combines the old bucket and roller: tap a closed area to fill it with the selected texture. Choose **Smooth** for a plain color.
+- The **Colors** and **Textures** palettes are always visible. Swipe sideways to see additional choices on smaller screens.
+- **Grass** and **Night sky** use their natural colors; other tintable materials use the selected paint color.
+- **Stickers** offers 18 pictures. Select one and tap the paper repeatedly to place copies. Undo, Redo, erasing, and PNG export include placed stickers.
+- **Undo** removes the last action; **Redo** restores it. **Save** stores a picture locally in this browser. Use More → My pictures to download or share it.
+- Sound effects use Web Audio. English speech uses an available system voice; it is not a recorded child voice and voice availability varies by device.
 
-- เลือกสีและเครื่องมือที่แถบล่าง ปุ่ม **เลือกรูป** อยู่ด้านบน
-- **ดินสอและพู่กันไม่เลยขอบ**: เริ่มลากจากด้านในช่องที่ต้องการ สีจะอยู่ในช่องนั้นตลอดการลาก ยกนิ้วแล้วเริ่มช่องใหม่ได้ หากเริ่มตรงเส้นให้ขยับเข้าไปด้านในก่อน ลายเส้นต้องเป็นพื้นที่ปิด
-- กด **✓ ไม่เลยขอบ** บนจอแนวนอนเพื่อสลับกับการวาดอิสระ กระดาษเปล่าใช้วาดอิสระได้ตามปกติ
-- กด **พื้นผิว** เพื่อเลือกลายผ้า ไม้ สีน้ำ สีเทียน ฯลฯ ใช้กับดินสอหรือพู่กันที่เลือกอยู่ได้โดยไม่เปลี่ยนเป็นลูกกลิ้ง หากต้องการเติมลายทั้งช่องให้เลือกลูกกลิ้ง
-- **สติกเกอร์**: เลือกรูปแล้วแตะบนกระดาษเพื่อแปะ แตะซ้ำเพื่อแปะอีกอัน ย้อนกลับเพื่อลบ หรือใช้ยางลบได้ ไม่มีกรอบหมุน/ย่อขยายมาบังภาพ
-- กดปุ่มบันทึกเพื่อเก็บผลงานในเบราว์เซอร์เครื่องนี้ เปิดเมนูผู้ปกครอง → ผลงานที่บันทึกไว้ → แตะภาพ เพื่อแชร์หรือดาวน์โหลด PNG
-- กระดาษเลือกสัดส่วนตามแนวหน้าจอตอนเปิดแอป รองรับแนวตั้งและแนวนอน หากหมุนระหว่างวาดจะรักษาสัดส่วนงานเดิม
+## Hosting
 
-## เสียง
+Static GitHub Pages app. Publish these files from `main` at `/(root)`. No build or API key is needed. The service worker supports offline app loading after a successful online visit. Increment its cache version when updating files.
 
-เปิดปุ่มเสียงเพื่อใช้เอฟเฟกต์แตะ/บันทึก และเสียงพูดชื่อสี/เครื่องมือภาษาอังกฤษ เสียงพูดเป็นเสียงสังเคราะห์ของอุปกรณ์ โดยเลือกเสียงผู้ชายเมื่อมีแล้วปรับโทนสูงขึ้น **ยังไม่ใช่เสียงเด็กผู้ชายที่บันทึกจริง** ความพร้อมและการพูดออฟไลน์ขึ้นกับเบราว์เซอร์
+## Verification
 
-## เผยแพร่
-
-เป็นเว็บแบบ static ไม่ต้องใช้ npm หรือ API key วางไฟล์ทั้งหมดที่ root ของ repository และตั้ง GitHub Pages เป็น branch `main`, folder `/(root)`
-
-ไฟล์ประกอบที่จำเป็น: `index.html`, `sticker-play.css`, `paper.svg`, `icon.svg`, `manifest.json`, `sw.js`, `.nojekyll`
-
-Service worker แคชแอปสำหรับเปิดออฟไลน์หลังจากโหลดออนไลน์สำเร็จ เมื่อเปลี่ยนไฟล์ควรเพิ่มเวอร์ชัน CACHE ใน `sw.js`
-
-## ตรวจสอบ
-
-ทดสอบ Chrome อัตโนมัติ: ดินสอและพู่กันลากข้ามขอบโดยสีไม่หลุดออกนอกช่อง, พื้นผิวปรากฏจริงในพิกเซล, ลากจากด้านนอกไม่รุกเข้าในช่อง, ย้อนกลับ/ทำซ้ำ, วาดบนกระดาษเปล่า, สลับวาดอิสระ, เลือกพื้นผิวโดยคงเครื่องมือเดิม, แปะสติกเกอร์ซ้ำ, บันทึก IndexedDB, โหลดใต้พาธ `/g/`, และโหลดออฟไลน์ ตรวจหน้าจอ desktop / iPad จำลอง / มือถือทั้งสองแนว
-
-ยังไม่ได้ทดสอบบน Safari/iPad จริง และยังไม่ได้ตรวจเสียงบนอุปกรณ์จริง
+Automated Chrome tests cover pencil clipping, free brush strokes, textured bucket fill, Undo/Redo, 18 stamp stickers, saving, English dialogs, desktop/mobile layouts, and offline loading under `/g/`. Physical iPad/Safari and device speech have not been tested.

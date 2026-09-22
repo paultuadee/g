@@ -1,6 +1,6 @@
 {
-  "name": "Sticker Play · สมุดศิลปะของหนู",
-  "short_name": "Sticker Play",
+  "name": "Little Art Studio",
+  "short_name": "Art Studio",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
