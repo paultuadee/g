@@ -103,7 +103,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#BFE0F
 .row,#sheetBox{touch-action:pan-x pan-y}#sheetBox button{touch-action:manipulation}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-<link rel="stylesheet" href="sticker-play.css?v=6">
+<link rel="stylesheet" href="sticker-play.css?v=7">
 </head>
 <body>
 <div id="app">
@@ -725,7 +725,7 @@ function killIcon() {
 
 // เอนจินวาดภาพ ทำงานบน canvas 2D ล้วน ไม่พึ่งไลบรารีภายนอก
 
-const W = 1600, H = matchMedia('(orientation:portrait)').matches ? Math.round(1600*Math.max(1,Math.min(1.7,(innerHeight-(innerWidth<=700?252:172)-28)/(innerWidth-32)))) : 960;
+const W = 1600, H = matchMedia('(orientation:portrait)').matches ? Math.round(1600*Math.max(1,Math.min(1.7,(innerHeight-(innerWidth<=700?286:204)-28)/(innerWidth-32)))) : 960;
 const TS = 128;                 // ขนาดช่องสำหรับเก็บประวัติ
 const SPRITE = 128;             // ความละเอียดหัวแปรง
 
@@ -1007,7 +1007,7 @@ class Engine {
     tc.globalCompositeOperation = 'source-in';
     tc.fillStyle = this.ink.kind === 'pattern'
       ? tc.createPattern(this.tile(this.ink.pattern, this.color), 'repeat')
-      : this.color;
+      : (this.ink.fixedColor || this.color);
     tc.fillRect(0, 0, W, H);
 
     this.history.begin();
@@ -1415,9 +1415,8 @@ function openParentMenu() {
     <button class="mbtn" id="mPick">Choose a picture</button>
     <button class="mbtn" id="mFree">Blank paper</button>
     <button class="mbtn" id="mPhoto">Import a photo</button>
-    <button class="mbtn" id="mLine">Turn photo into outlines</button>
     <button class="mbtn" id="mGal">My pictures</button>
-    <button class="mbtn danger" id="mClear">New blank picture</button></div>`, () => {
+</div>`, () => {
     $('#mPick').onclick = openArtPicker;
     $('#mFree').onclick = () => {
       closeSheet();
@@ -1426,13 +1425,7 @@ function openParentMenu() {
       state.tool = 'brush'; eng.tool = 'brush'; buildTools();
     };
     $('#mPhoto').onclick = () => { closeSheet(); $('#filePick').click(); };
-    $('#mLine').onclick = openLineLevels;
     $('#mGal').onclick = openGallery;
-    $('#mClear').onclick = () => {
-      closeSheet();
-      stickers.splice(0).forEach(s => s.el.remove());
-      deselect(); eng.clearAll();
-    };
   });
 }
 
@@ -1485,13 +1478,7 @@ function openLineLevels() {
   });
 }
 
-$('#filePick').addEventListener('change', (e) => {
-  const f = e.target.files && e.target.files[0]; if (!f) return;
-  const img = new Image();
-  img.onload = () => { eng.drawPhoto(img); URL.revokeObjectURL(img.src); };
-  img.src = URL.createObjectURL(f);
-  e.target.value = '';
-});
+$('#filePick').addEventListener('change', importPicture);
 
 // ---------------------------------------------------------------- Saveผลงาน
 let db = null;
@@ -1560,7 +1547,7 @@ function chime(success=false){
 function say(key){if(!soundEnabled||!('speechSynthesis' in window))return; speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(PHRASES[key]||key+'!');const voices=speechSynthesis.getVoices().filter(v=>/^en[-_]/i.test(v.lang));u.voice=voices.find(v=>/David|Mark|Daniel|Alex|Guy|James/i.test(v.name))||voices[0]||null;u.lang='en-US';u.pitch=1.35;u.rate=.93;u.volume=.7;speechSynthesis.speak(u);}
 document.addEventListener('click',e=>{if(e.target.closest('button'))chime()},true);
 $('#btnSound').onclick=()=>{soundEnabled=!soundEnabled;$('#btnSound').textContent=soundEnabled?'Sound on':'Sound off';$('#btnSound').classList.toggle('active',soundEnabled);$('#btnSound').setAttribute('aria-pressed',soundEnabled);if(soundEnabled){chime();say('welcome')}else{window.speechSynthesis?.cancel();audioContext?.suspend()}};
-input.addEventListener('pointerdown',()=>chime());
+
 document.addEventListener('visibilitychange',()=>{if(document.hidden){window.speechSynthesis?.cancel();audioContext?.suspend()}});
 function demoCanvas(){
  const c=document.createElement('canvas');c.width=1000;c.height=660;const x=c.getContext('2d');
@@ -1579,7 +1566,7 @@ $('#btnDemo').onclick=()=>{sheet('<button class="close-sheet" aria-label="Close 
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
 
 // Sticker Play: preserve the original line art and add region-locked drawing.
-const STICKER_VERSION='sticker-play-v6.0';
+const STICKER_VERSION='sticker-play-v7.0';
 const TOOL_LABELS={pencil:'Pencil',brush:'Brush',eraser:'Eraser',bucket:'Fill',sticker:'Stickers'};
 let pendingSticker=null, hintTimer;
 function showHint(message){const e=$('#hint');e.textContent=message;e.classList.add('on');clearTimeout(hintTimer);hintTimer=setTimeout(()=>e.classList.remove('on'),2600)}
@@ -1658,7 +1645,7 @@ function stampSticker(x,y){
 }
 openStickerPicker=function(){
  sheet('<h2>Pick a sticker!</h2><p class="note">Tap the paper to place it. Tap again for more. Undo removes the last one.</p><div class="pickgrid" id="sg"></div>',()=>{
- STICKERS.forEach((svg,i)=>{const b=document.createElement('button');b.innerHTML=svg;b.setAttribute('aria-label','Sticker '+(i+1));b.onclick=async()=>{b.disabled=true;const im=new Image();im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);try{await im.decode();pendingSticker=im;state.tool=eng.tool='sticker';closeSheet();buildTools();showHint('Tap the paper to place your sticker!')}catch{b.disabled=false;showHint('Could not load this sticker. Please try again.')}};$('#sg').append(b)})
+ STICKERS.forEach((svg,i)=>{const b=document.createElement('button');b.innerHTML=svg;b.setAttribute('aria-label',STICKER_NAMES[i]);b.title=STICKER_NAMES[i];b.onclick=async()=>{b.disabled=true;const im=new Image();im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);try{await im.decode();pendingSticker=im;say(STICKER_NAMES[i]);state.tool=eng.tool='sticker';closeSheet();buildTools();showHint('Tap the paper to place your sticker!')}catch{b.disabled=false;showHint('Could not load this sticker. Please try again.')}};$('#sg').append(b)})
  });
 };
 const baseBuildTools=buildTools;
@@ -1696,6 +1683,52 @@ btnUndo.innerHTML=historyIcon('left','Undo','#497ea8');btnRedo.innerHTML=history
 btnSave.innerHTML='<svg viewBox="0 0 40 32" aria-hidden="true"><path d="M20 3v17m-7-6 7 7 7-7M7 24v5h26v-5" fill="none" stroke="#4a9576" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/></svg><span>Save</span>';
 btnPhoto.innerHTML='<svg viewBox="0 0 40 32" aria-hidden="true"><g fill="#8d7964"><circle cx="9" cy="16" r="4"/><circle cx="20" cy="16" r="4"/><circle cx="31" cy="16" r="4"/></g></svg><span>More</span>';
 
+// Each material has its own permanent palette. Smooth remains the selected paint color.
+const MATERIAL_COLORS={linen:'#d7bc8e',woodgrain:'#ab7344',watercolor:'#8fafd0',sand:'#d8b875',hearts:'#ec91ae',stars:'#d4aa49',dots:'#92bfac',bubbles:'#6dbaca',snow:'#8ab9d1',leaves:'#79a957'};
+for(const material of PATTERNS){
+ if(!material.tintable)continue;
+ const draw=material.draw, color=MATERIAL_COLORS[material.id]||'#a69ac3';
+ material.tintable=false;material.draw=(ctx,size)=>draw(ctx,size,color);
+}
+INKS.find(i=>i.id==='crayon').fixedColor='#e69a65';
+const originalInkColor=Engine.prototype.inkColor;
+Engine.prototype.inkColor=function(i){return this.ink.fixedColor||originalInkColor.call(this,i)};
+const originalSpriteFor=Engine.prototype.spriteFor;
+Engine.prototype.spriteFor=function(ink,color){return originalSpriteFor.call(this,ink,ink.fixedColor||color)};
+
+// Three independently remembered sizes, without taking space away from the paper.
+const STICKER_NAMES=['Star','Heart','Flower','Cloud','Sun','Rainbow','Car','Robot','Rocket','Bear','Butterfly','Cat','Moon','Dinosaur','Mushroom','Purple butterfly','House','Cupcake'];
+const importLibrary=new Promise(resolve=>{try{const r=indexedDB.open('little-art-imports',1);r.onupgradeneeded=()=>r.result.createObjectStore('assets',{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>resolve(null);r.onblocked=()=>resolve(null)}catch{resolve(null)}});
+async function saveImported(kind,name,src){const db=await importLibrary;if(!db)throw new Error('Storage unavailable');await new Promise((resolve,reject)=>{const tx=db.transaction('assets','readwrite');tx.objectStore('assets').put({id:crypto.randomUUID(),kind,name,src});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error)})}
+async function appendSavedImports(kind,grid){try{const db=await importLibrary;if(!db)return;const assets=await new Promise((resolve,reject)=>{const r=db.transaction('assets').objectStore('assets').getAll();r.onsuccess=()=>resolve(r.result.filter(x=>x.kind===kind));r.onerror=()=>reject(r.error)});if(!grid.isConnected)return;for(const asset of assets){const b=document.createElement('button'),img=new Image();img.src=asset.src;img.alt='';b.className='saved-import';b.setAttribute('aria-label','Saved '+kind+': '+asset.name);b.title=asset.name;b.append(img);b.onclick=async()=>{try{await img.decode();if(kind==='sticker'){pendingSticker=img;state.tool=eng.tool='sticker';buildTools();say('Your sticker');showHint('Tap the paper to place your sticker!')}else{eng.drawPhoto(img)}closeSheet()}catch{showHint('Could not open this saved image.')}};grid.append(b)}}catch{showHint('Saved imports are unavailable in this browser.')}}
+async function importPicture(e){const file=e.target.files?.[0];e.target.value='';if(!file)return;if(!/^image\/(png|jpeg|webp)$/.test(file.type)||file.size>20*1024*1024){showHint('Choose a PNG, JPG or WebP smaller than 20 MB.');return}const url=URL.createObjectURL(file);try{const im=new Image();im.src=url;await im.decode();if(im.naturalWidth*im.naturalHeight>40000000)throw new Error('Too large');const c=document.createElement('canvas'),scale=Math.min(1,2048/Math.max(im.naturalWidth,im.naturalHeight));c.width=Math.max(1,Math.round(im.naturalWidth*scale));c.height=Math.max(1,Math.round(im.naturalHeight*scale));c.getContext('2d').drawImage(im,0,0,c.width,c.height);const src=c.toDataURL('image/png');await saveImported('picture',file.name,src);eng.drawPhoto(im);showHint('Picture saved! Find it in Pictures next time.')}catch{showHint('Could not save this import. Try a smaller image or check browser storage.')}finally{URL.revokeObjectURL(url)}}
+const artPickerBeforeLibrary=openArtPicker;openArtPicker=function(){artPickerBeforeLibrary();appendSavedImports('picture',$('#ag'))};$('#btnArt').onclick=openArtPicker;
+const importStickerInput=document.createElement('input');importStickerInput.type='file';importStickerInput.accept='image/png,image/jpeg,image/webp';importStickerInput.hidden=true;importStickerInput.id='importStickerFile';document.body.append(importStickerInput);
+const pickerBeforeImport=openStickerPicker;openStickerPicker=function(){pickerBeforeImport();const b=document.createElement('button');b.className='mbtn';b.id='importSticker';b.textContent='＋ Import stickers';b.onclick=()=>importStickerInput.click();$('#sg').before(b);appendSavedImports('sticker',$('#sg'))};
+importStickerInput.onchange=async()=>{const file=importStickerInput.files[0];importStickerInput.value='';if(!file)return;if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>20*1024*1024){showHint('Choose a PNG, JPG or WebP smaller than 20 MB.');return}const url=URL.createObjectURL(file);try{const original=new Image();original.src=url;await original.decode();if(!original.naturalWidth||original.naturalWidth*original.naturalHeight>40000000)throw new Error('Image too large');const c=document.createElement('canvas');c.width=c.height=512;const ctx=c.getContext('2d'),scale=512/Math.max(original.naturalWidth,original.naturalHeight),w=original.naturalWidth*scale,h=original.naturalHeight*scale;ctx.drawImage(original,(512-w)/2,(512-h)/2,w,h);const im=new Image();im.src=c.toDataURL('image/png');await im.decode();await saveImported('sticker',file.name,im.src);pendingSticker=im;state.tool=eng.tool='sticker';closeSheet();buildTools();say('Your sticker');showHint('Tap the paper to place your sticker!')}catch{showHint('Could not load this image. Please try a smaller PNG, JPG or WebP.')}finally{URL.revokeObjectURL(url)}};
+const toolSizes={pencil:1,brush:1,eraser:1},sizeValues={pencil:[30,64,112],brush:[30,64,120],eraser:[36,76,140]};
+const sizeNames=['Small','Medium','Large'];
+const sizeButton=document.createElement('button');sizeButton.id='btnSize';sizeButton.className='softbtn';
+$('#topbar').insertBefore(sizeButton,$('#btnSound'));
+function updateSize(){const sizes=sizeValues[state.tool];sizeButton.hidden=!sizes;if(!sizes)return;eng.size=sizes[toolSizes[state.tool]];sizeButton.innerHTML='<span class="size-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>Size</span>';sizeButton.setAttribute('aria-label',TOOL_LABELS[state.tool]+' size: '+sizeNames[toolSizes[state.tool]]);}
+sizeButton.onclick=()=>{const tool=state.tool;if(!sizeValues[tool])return;sheet('<h2>'+TOOL_LABELS[tool]+' size</h2><div class="size-choices"></div>',()=>{sizeNames.forEach((name,i)=>{const b=document.createElement('button');b.className='size-choice';b.setAttribute('aria-pressed',toolSizes[tool]===i);b.innerHTML='<span style="width:'+[10,22,36][i]+'px;height:'+[10,22,36][i]+'px" aria-hidden="true"></span><strong>'+name+'</strong>';b.onclick=()=>{toolSizes[tool]=i;updateSize();say(name);closeSheet()};$('.size-choices').append(b)})})};
+const buildToolsBeforeSizes=buildTools;buildTools=function(){buildToolsBeforeSizes();updateSize()};
+
+// Prefer an available young male English voice. System voice quality varies by device.
+say=function(key){if(!soundEnabled||!('speechSynthesis' in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(PHRASES[key]||key+'!');const voices=speechSynthesis.getVoices().filter(v=>/^en([-_]|$)/i.test(v.lang));const young=voices.find(v=>/boy|child|junior/i.test(v.name));u.voice=young||voices.find(v=>/Guy|Christopher|Eric|David|Mark|Daniel|Alex|James/i.test(v.name))||voices[0]||null;u.lang=u.voice?.lang||'en-US';u.pitch=young?1:1.55;u.rate=.94;u.volume=.8;speechSynthesis.speak(u)};
+
+// Filtered paper-friction noise follows movement; stationary pointers are silent.
+let friction=null,frictionPoint=null;
+function stopFriction(){frictionPoint=null;if(!friction)return;const f=friction;friction=null;const now=f.ctx.currentTime;f.gain.gain.cancelScheduledValues(now);f.gain.gain.setTargetAtTime(0,now,.015);try{f.source.stop(now+.08)}catch{}f.source.onended=()=>{f.source.disconnect();f.filter.disconnect();f.gain.disconnect()};}
+function startFriction(e){stopFriction();if(!soundEnabled||!drawing||e.pointerId!==activeId||!sizeValues[state.tool])return;try{audioContext ||= new (window.AudioContext||window.webkitAudioContext)();const ctx=audioContext;ctx.resume().catch(()=>{});const buffer=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),data=buffer.getChannelData(0);let brown=0;for(let i=0;i<data.length;i++){const white=Math.random()*2-1;brown=(brown+.025*white)/1.025;data[i]=(.7*white+2*brown)*(.65+.35*Math.sin(i*.081)*Math.sin(i*.017))}const source=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();source.buffer=buffer;source.loop=true;filter.type='bandpass';filter.frequency.value=state.tool==='pencil'?2400:state.tool==='brush'?700:1100;filter.Q.value=state.tool==='pencil'?.65:.4;gain.gain.value=0;source.connect(filter);filter.connect(gain);gain.connect(ctx.destination);source.start();friction={ctx,source,filter,gain,tool:state.tool};frictionPoint={x:e.clientX,y:e.clientY,t:e.timeStamp}}catch{stopFriction()}}
+input.addEventListener('pointerdown',startFriction);
+input.addEventListener('pointermove',e=>{if(!friction||!frictionPoint||!drawing||e.pointerId!==activeId)return;const p=frictionPoint,dist=Math.hypot(e.clientX-p.x,e.clientY-p.y),speed=dist/Math.max(8,e.timeStamp-p.t);frictionPoint={x:e.clientX,y:e.clientY,t:e.timeStamp};if(dist<.3)return;const {ctx,gain,source,tool}=friction,now=ctx.currentTime;const level=Math.min(.12,.018+speed*.055)*(tool==='brush'?.65:1);gain.gain.cancelScheduledValues(now);gain.gain.setTargetAtTime(level,now,.008);gain.gain.setTargetAtTime(0,now+.035,.035);source.playbackRate.setTargetAtTime(Math.min(1.4,.8+speed*.2),now,.03)});
+for(const event of ['pointerup','pointercancel','lostpointercapture'])input.addEventListener(event,e=>{if(!drawing||e.pointerId===activeId)stopFriction()});
+window.addEventListener('blur',stopFriction);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopFriction()});
+$('#btnSound').addEventListener('click',()=>{if(!soundEnabled)stopFriction()});
+
+
+
 // ---------------------------------------------------------------- เริ่มทำงาน
 async function boot() {
   await openDB();
@@ -1713,5 +1746,6 @@ boot();
 </script>
 </body>
 </html>
+
 
 
