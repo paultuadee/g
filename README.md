@@ -31,3 +31,5 @@ Automated Chrome tests cover pencil clipping, free brush strokes, textured bucke
 The texture picker shows eight familiar preschool materials and shapes, plus Smooth for plain colors. Linen, Watercolor and Candy are no longer offered.
 
 Texture swatches and rows match the color palette dimensions on desktop, mobile and landscape. Eighteen additional named vector stickers bring the collection to 36.
+
+Drawing performance: reuse outline masks for repeated strokes, crop masking to the brush area, cache texture patterns and friction audio samples, and use direct drawing for unclipped plain brushes. Outline changes invalidate cached regions. Color and Texture controls now expand on demand and close after a selection. Selecting textures speaks their English names. See textures-preview.html for 30 proposed patterns to choose from.
