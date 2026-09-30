@@ -88,3 +88,9 @@ html,body{background:#ffd6b7;color:var(--ink);font-family:'Trebuchet MS',Tahoma,
 @media(max-width:1100px){#app{grid-template-rows:60px minmax(0,1fr) 170px}}
 @media(max-width:700px) and (orientation:portrait){#app{grid-template-rows:108px minmax(0,1fr) 253px}#dock{justify-content:center}#rowColor,#rowTex{width:calc(100vw - 24px);left:12px;right:12px;padding:16px;gap:14px}#rowColor .swatch,#rowTex .swatch{width:62px;height:62px;min-width:62px;min-height:62px;flex-basis:62px}#hint{bottom:266px}}
 @media(max-height:560px) and (orientation:landscape){#app{grid-template-rows:48px minmax(0,1fr) 139px}#rowColor,#rowTex{max-height:54dvh;padding:12px;gap:12px}#rowColor .swatch,#rowTex .swatch{width:54px;height:54px;min-width:54px;min-height:54px;flex-basis:54px}#hint{bottom:150px}}
+
+/* Names help children connect the swatch to its spoken vocabulary. */
+#rowTex .swatch{margin-bottom:22px}#rowTex .swatch:after{display:block;content:attr(data-label);position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);width:78px;white-space:normal;font-size:10px;line-height:12px;color:#66553f;text-align:center}
+#rowColor,#rowTex,#rowTex.open{max-height:min(60dvh,calc(100dvh - 260px))}
+@media(max-width:700px) and (orientation:portrait){#rowColor,#rowTex,#rowTex.open{max-height:min(60dvh,calc(100dvh - 377px))}}
+@media(max-height:560px) and (orientation:landscape){#rowColor,#rowTex,#rowTex.open{max-height:min(54dvh,calc(100dvh - 207px))}}

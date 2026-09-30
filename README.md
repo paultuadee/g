@@ -33,3 +33,7 @@ The texture picker shows eight familiar preschool materials and shapes, plus Smo
 Texture swatches and rows match the color palette dimensions on desktop, mobile and landscape. Eighteen additional named vector stickers bring the collection to 36.
 
 Drawing performance: reuse outline masks for repeated strokes, crop masking to the brush area, cache texture patterns and friction audio samples, and use direct drawing for unclipped plain brushes. Outline changes invalidate cached regions. Color and Texture controls now expand on demand and close after a selection. Selecting textures speaks their English names. See textures-preview.html for 30 proposed patterns to choose from.
+
+## Selected textures
+
+The user-selected 26 preview patterns are now available in the app, with matching fixed colors and spoken English names: Grass, Clouds, Night sky, Sand, Wood, Water, Leaves, Flowers, Rainbow, Snow, Rain, Bubbles, Bricks, Fish scales, Fur, Feathers, Hearts, Stars, Dots, Stripes, Checks, Honeycomb, Sprinkles, Orange, Watermelon, Mud. Smooth remains available for solid paint. SVG tiles are decoded once at startup and cached for drawing; all artwork is inline for offline use.
