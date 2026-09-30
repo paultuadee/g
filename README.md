@@ -37,3 +37,5 @@ Drawing performance: reuse outline masks for repeated strokes, crop masking to t
 ## Selected textures
 
 The user-selected 26 preview patterns are now available in the app, with matching fixed colors and spoken English names: Grass, Clouds, Night sky, Sand, Wood, Water, Leaves, Flowers, Rainbow, Snow, Rain, Bubbles, Bricks, Fish scales, Fur, Feathers, Hearts, Stars, Dots, Stripes, Checks, Honeycomb, Sprinkles, Orange, Watermelon, Mud. Smooth remains available for solid paint. SVG tiles are decoded once at startup and cached for drawing; all artwork is inline for offline use.
+
+Performance update: canvas-backed undo snapshots remove synchronous pixel readbacks during strokes; paint/fill canvases can use browser acceleration. Cache canvas geometry once per stroke and fall back safely when coalesced pointer events are empty.

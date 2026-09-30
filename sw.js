@@ -1,4 +1,4 @@
-const CACHE='little-art-studio-sticker-v10-0';
+const CACHE='little-art-studio-sticker-v11-0';
 const FILES=['./','./index.html','./manifest.json','./paper.svg','./icon.svg','./sticker-play.css?v=10'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>(k.startsWith('little-art-studio-')||k.startsWith('paint-v'))&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));

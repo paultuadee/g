@@ -732,6 +732,7 @@ const SPRITE = 128;             // ความละเอียดหัวแ
 const mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return c; };
 
 // ---------------------------------------------------------------- ประวัติ
+function captureTile(ctx,x,y,w,h){const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(ctx.canvas,x,y,w,h,0,0,w,h);return c}
 class History {
   constructor(eng) {
     this.e = eng; this.past = []; this.future = [];
@@ -747,18 +748,18 @@ class History {
       const k = layer + ':' + tx + ':' + ty;
       if (this.cur.has(k)) continue;
       const w = Math.min(TS, W - tx * TS), h = Math.min(TS, H - ty * TS);
-      this.cur.set(k, { layer, tx, ty, w, h, before: ctx.getImageData(tx * TS, ty * TS, w, h) });
+      this.cur.set(k, { layer, tx, ty, w, h, before: captureTile(ctx,tx * TS,ty * TS,w,h) });
     }
   }
   commit() {
     if (!this.cur || !this.cur.size) { this.cur = null; return; }
     const items = [];
     for (const it of this.cur.values()) {
-      it.after = this.e.ctx[it.layer].getImageData(it.tx * TS, it.ty * TS, it.w, it.h);
+      it.after = captureTile(this.e.ctx[it.layer],it.tx * TS,it.ty * TS,it.w,it.h);
       items.push(it);
       this.bytes += it.w * it.h * 8;
     }
-    this.past.push(items); this.future.length = 0; this.cur = null;
+    this.past.push(items);for(const future of this.future)for(const it of future)this.bytes-=it.w*it.h*8;this.future.length = 0;this.cur = null;
     while (this.past.length > this.max || this.bytes > this.budget) this.drop();
   }
   drop() {
@@ -766,8 +767,7 @@ class History {
     for (const it of old) this.bytes -= it.w * it.h * 8;
   }
   apply(items, which) {
-    for (const it of items)
-      this.e.ctx[it.layer].putImageData(it[which], it.tx * TS, it.ty * TS);
+    for(const it of items){const ctx=this.e.ctx[it.layer],x=it.tx*TS,y=it.ty*TS;ctx.clearRect(x,y,it.w,it.h);ctx.drawImage(it[which],x,y)}
   }
   undo() {
     const it = this.past.pop(); if (!it) return false;
@@ -789,7 +789,7 @@ class Engine {
     this.ctx = {};
     for (const k in canvases) {
       canvases[k].width = W; canvases[k].height = H;
-      this.ctx[k] = canvases[k].getContext('2d', { willReadFrequently: true });
+      this.ctx[k] = canvases[k].getContext('2d', { willReadFrequently: k === 'line' });
     }
     this.ctx.bg.fillStyle = '#fff'; this.ctx.bg.fillRect(0, 0, W, H);
     this.history = new History(this);
@@ -1258,9 +1258,9 @@ function refresh() {
 eng.onChange = refresh;
 
 // ---------------------------------------------------------------- การวาด
-let drawing = false, activeId = null, lastPen = 0;
+let drawing = false, activeId = null, lastPen = 0, strokeRect = null;
 function pt(e) {
-  const r = card.getBoundingClientRect();
+  const r = strokeRect || card.getBoundingClientRect();
   return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height };
 }
 function allowed(e) {
@@ -1271,6 +1271,7 @@ function allowed(e) {
 input.addEventListener('pointerdown', (e) => {
   if (!allowed(e)) return;
   if (selected) deselect();
+  strokeRect=card.getBoundingClientRect();
   const p = pt(e);
   if(state.tool==='sticker'){stampSticker(p.x,p.y);return;}
 
@@ -1291,7 +1292,7 @@ input.addEventListener('pointerdown', (e) => {
 
 input.addEventListener('pointermove', (e) => {
   if (!drawing || e.pointerId !== activeId) return;
-  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  const samples=e.getCoalescedEvents?.();const evs=samples?.length?samples:[e];
   for (const ev of evs) {
     const p = pt(ev);
     eng.strokeMove(p.x, p.y, ev.pressure || 1, false);
@@ -1300,7 +1301,7 @@ input.addEventListener('pointermove', (e) => {
 
 const endStroke = (e) => {
   if (!drawing || (e && e.pointerId !== activeId)) return;
-  drawing = false; activeId = null; eng.strokeEnd();
+  drawing = false; activeId = null; strokeRect=null;eng.strokeEnd();
 };
 input.addEventListener('pointerup', endStroke);
 input.addEventListener('pointercancel', endStroke);
@@ -1566,7 +1567,7 @@ $('#btnDemo').onclick=()=>{sheet('<button class="close-sheet" aria-label="Close 
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
 
 // Sticker Play: preserve the original line art and add region-locked drawing.
-const STICKER_VERSION='sticker-play-v10.0';
+const STICKER_VERSION='sticker-play-v11.0';
 const TOOL_LABELS={pencil:'Pencil',brush:'Brush',eraser:'Eraser',bucket:'Fill',sticker:'Stickers'};
 let pendingSticker=null, hintTimer;
 function showHint(message){const e=$('#hint');e.textContent=message;e.classList.add('on');clearTimeout(hintTimer);hintTimer=setTimeout(()=>e.classList.remove('on'),2600)}
