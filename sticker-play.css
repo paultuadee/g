@@ -94,3 +94,10 @@ html,body{background:#ffd6b7;color:var(--ink);font-family:'Trebuchet MS',Tahoma,
 #rowColor,#rowTex,#rowTex.open{max-height:min(60dvh,calc(100dvh - 260px))}
 @media(max-width:700px) and (orientation:portrait){#rowColor,#rowTex,#rowTex.open{max-height:min(60dvh,calc(100dvh - 377px))}}
 @media(max-height:560px) and (orientation:landscape){#rowColor,#rowTex,#rowTex.open{max-height:min(54dvh,calc(100dvh - 207px))}}
+
+/* Compact dock, with full-size tools and inline sizes below. */
+#app{grid-template-rows:60px minmax(0,1fr) 120px}#topbar{height:60px;flex-wrap:nowrap;padding:4px 14px}#dock{display:grid;grid-template-columns:minmax(280px,1fr) minmax(290px,.8fr);gap:10px;padding:5px 14px}#rowTool{padding:0;align-self:center}#btnSize{order:0;width:auto;justify-content:center;min-height:48px;height:48px;visibility:visible}.palette-stack{height:auto;min-height:0;gap:5px}#btnSize[hidden]{display:flex;visibility:hidden;pointer-events:none}#hint{bottom:132px}
+.import-item{position:relative;min-width:0}.import-item>.saved-import{width:100%}.pickgrid .remove-import,#sg .remove-import{position:absolute;top:0;right:0;width:44px;height:44px;min-width:44px;aspect-ratio:auto;padding:0;border:2px solid white;border-radius:50%;background:#ffe5e0;color:#943d35;font-size:27px;line-height:1;box-shadow:0 2px 5px #0002}.restore-import{margin-top:8px}
+#rowColor,#rowTex,#rowTex.open{max-height:min(60dvh,calc(100dvh - 204px))}
+@media(max-width:700px) and (orientation:portrait){#app{grid-template-rows:56px minmax(0,1fr) 187px}#topbar{height:56px;gap:6px;padding:3px 10px;align-content:center}#dock{display:flex;flex-direction:column;gap:4px;padding:4px 10px 7px}#rowTool{width:100%;height:73px;min-height:73px}.palette-stack{width:100%;gap:4px}#btnSize{height:44px;min-height:44px}#hint{bottom:198px}#rowColor,#rowTex,#rowTex.open{max-height:min(60dvh,calc(100dvh - 267px))}}
+@media(max-height:560px) and (orientation:landscape){#app{grid-template-rows:48px minmax(0,1fr) 110px}#topbar{height:48px}#dock{padding:3px 12px}#hint{bottom:122px}}

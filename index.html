@@ -103,7 +103,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#BFE0F
 .row,#sheetBox{touch-action:pan-x pan-y}#sheetBox button{touch-action:manipulation}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-<link rel="stylesheet" href="sticker-play.css?v=10">
+<link rel="stylesheet" href="sticker-play.css?v=12">
 </head>
 <body>
 <div id="app">
@@ -725,7 +725,7 @@ function killIcon() {
 
 // เอนจินวาดภาพ ทำงานบน canvas 2D ล้วน ไม่พึ่งไลบรารีภายนอก
 
-const W = 1600, H = matchMedia('(orientation:portrait)').matches ? Math.round(1600*Math.max(1,Math.min(1.7,(innerHeight-(innerWidth<=700?314:232)-28)/(innerWidth-32)))) : 960;
+let W = matchMedia("(orientation:portrait)").matches ? 1200 : 1600, H = matchMedia("(orientation:portrait)").matches ? 1600 : 960;
 const TS = 128;                 // ขนาดช่องสำหรับเก็บประวัติ
 const SPRITE = 128;             // ความละเอียดหัวแปรง
 
@@ -736,7 +736,7 @@ function captureTile(ctx,x,y,w,h){const c=document.createElement('canvas');c.wid
 class History {
   constructor(eng) {
     this.e = eng; this.past = []; this.future = [];
-    this.max = 20; this.budget = 56e6; this.bytes = 0; this.cur = null;
+    this.max = 10; this.budget = 56e6; this.bytes = 0; this.cur = null;
   }
   begin() { this.cur = new Map(); }
   touch(layer, x0, y0, x1, y1) {
@@ -755,19 +755,19 @@ class History {
     if (!this.cur || !this.cur.size) { this.cur = null; return; }
     const items = [];
     for (const it of this.cur.values()) {
-      it.after = captureTile(this.e.ctx[it.layer],it.tx * TS,it.ty * TS,it.w,it.h);
+      // Each tile holds the opposite state; swap it only when undoing or redoing.
       items.push(it);
-      this.bytes += it.w * it.h * 8;
+      this.bytes += it.w * it.h * 4;
     }
-    this.past.push(items);for(const future of this.future)for(const it of future)this.bytes-=it.w*it.h*8;this.future.length = 0;this.cur = null;
-    while (this.past.length > this.max || this.bytes > this.budget) this.drop();
+    this.past.push(items);for(const future of this.future)for(const it of future)this.bytes-=it.w*it.h*4;this.future.length = 0;this.cur = null;
+    while (this.past.length > this.max) this.drop();
   }
   drop() {
     const old = this.past.shift(); if (!old) return;
-    for (const it of old) this.bytes -= it.w * it.h * 8;
+    for (const it of old) this.bytes -= it.w * it.h * 4;
   }
   apply(items, which) {
-    for(const it of items){const ctx=this.e.ctx[it.layer],x=it.tx*TS,y=it.ty*TS;ctx.clearRect(x,y,it.w,it.h);ctx.drawImage(it[which],x,y)}
+    for(const it of items){const ctx=this.e.ctx[it.layer],x=it.tx*TS,y=it.ty*TS;const opposite=captureTile(ctx,x,y,it.w,it.h);ctx.clearRect(x,y,it.w,it.h);ctx.drawImage(it.before,x,y);it.before=opposite}
   }
   undo() {
     const it = this.past.pop(); if (!it) return false;
@@ -1040,10 +1040,12 @@ class Engine {
     this._dirty = true;
   }
   drawPhoto(img) {
+    newDocument(img.naturalWidth||img.width,img.naturalHeight||img.height);
     const c = this.ctx.bg;
     c.fillStyle = '#fff'; c.fillRect(0, 0, W, H);
-    const s = Math.max(W / img.width, H / img.height);
-    const w = img.width * s, h = img.height * s;
+    const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height;
+    const s = Math.min(W / iw, H / ih);
+    const w = iw * s, h = ih * s;
     c.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
     this._dirty = true; this.onChange();
   }
@@ -1164,6 +1166,13 @@ const stickers = [];
 let selected = null;
 const state = { tool: 'pencil', color: COLORS[0], ink: 0, page: 0, kid: true };
 
+function newDocument(width,height){
+  if(!width||!height){const portrait=matchMedia('(orientation:portrait)').matches;width=portrait?1200:1600;height=portrait?1600:960;}
+  const scale=Math.min(1,1600/Math.max(width,height));W=Math.max(1,Math.round(width*scale));H=Math.max(1,Math.round(height*scale));
+  stickers.splice(0).forEach(s=>s.el.remove());deselect();pendingSticker=null;
+  for(const c of Object.values(eng.cv)){c.width=W;c.height=H;}
+  eng._wall=null;eng._wallD=null;eng._band=null;eng._smartMask=null;eng.clearAll();layout();
+}
 // ---------------------------------------------------------------- ขนาดผืนผ้าใบ
 function layout() {
   const pad = 14;
@@ -1422,7 +1431,7 @@ function openParentMenu() {
     $('#mFree').onclick = () => {
       closeSheet();
       stickers.splice(0).forEach(s => s.el.remove()); deselect();
-      eng.clearAll();
+      newDocument();
       state.tool = 'brush'; eng.tool = 'brush'; buildTools();
     };
     $('#mPhoto').onclick = () => { closeSheet(); $('#filePick').click(); };
@@ -1452,7 +1461,7 @@ function openArtPicker() {
     blank.onclick = () => {
       closeSheet();
       stickers.splice(0).forEach(s => s.el.remove()); deselect();
-      eng.clearAll();
+      newDocument();
       state.tool = 'brush'; eng.tool = 'brush'; buildTools();
     };
     g.appendChild(blank);
@@ -1462,7 +1471,7 @@ function openArtPicker() {
       b.onclick = () => {
         closeSheet();
         stickers.splice(0).forEach(s => s.el.remove()); deselect();
-        eng.loadLineArt(a.id);
+        newDocument();eng.loadLineArt(a.id);
       };
       g.appendChild(b);
     });
@@ -1567,7 +1576,7 @@ $('#btnDemo').onclick=()=>{sheet('<button class="close-sheet" aria-label="Close 
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
 
 // Sticker Play: preserve the original line art and add region-locked drawing.
-const STICKER_VERSION='sticker-play-v11.0';
+const STICKER_VERSION='sticker-play-v12.0';
 const TOOL_LABELS={pencil:'Pencil',brush:'Brush',eraser:'Eraser',bucket:'Fill',sticker:'Stickers'};
 let pendingSticker=null, hintTimer;
 function showHint(message){const e=$('#hint');e.textContent=message;e.classList.add('on');clearTimeout(hintTimer);hintTimer=setTimeout(()=>e.classList.remove('on'),2600)}
@@ -1700,16 +1709,18 @@ Engine.prototype.spriteFor=function(ink,color){return originalSpriteFor.call(thi
 const STICKER_NAMES=['Star','Heart','Flower','Cloud','Sun','Rainbow','Car','Robot','Rocket','Bear','Butterfly','Cat','Moon','Dinosaur','Mushroom','Purple butterfly','House','Cupcake'];
 const importLibrary=new Promise(resolve=>{try{const r=indexedDB.open('little-art-imports',1);r.onupgradeneeded=()=>r.result.createObjectStore('assets',{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>resolve(null);r.onblocked=()=>resolve(null)}catch{resolve(null)}});
 async function saveImported(kind,name,src){const db=await importLibrary;if(!db)throw new Error('Storage unavailable');await new Promise((resolve,reject)=>{const tx=db.transaction('assets','readwrite');tx.objectStore('assets').put({id:crypto.randomUUID(),kind,name,src});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error)})}
-async function appendSavedImports(kind,grid){try{const db=await importLibrary;if(!db)return;const assets=await new Promise((resolve,reject)=>{const r=db.transaction('assets').objectStore('assets').getAll();r.onsuccess=()=>resolve(r.result.filter(x=>x.kind===kind));r.onerror=()=>reject(r.error)});if(!grid.isConnected)return;for(const asset of assets){const b=document.createElement('button'),img=new Image();img.src=asset.src;img.alt='';b.className='saved-import';b.setAttribute('aria-label','Saved '+kind+': '+asset.name);b.title=asset.name;b.append(img);b.onclick=async()=>{try{await img.decode();if(kind==='sticker'){pendingSticker=img;state.tool=eng.tool='sticker';buildTools();say('Your sticker');showHint('Tap the paper to place your sticker!')}else{eng.drawPhoto(img)}closeSheet()}catch{showHint('Could not open this saved image.')}};grid.append(b)}}catch{showHint('Saved imports are unavailable in this browser.')}}
+function addRestoreLibrary(grid){const b=document.createElement('button');b.className='mbtn';b.textContent='Restore removed imports';b.onclick=async()=>{const db=await importLibrary;if(!db)return;const tx=db.transaction('assets','readwrite'),s=tx.objectStore('assets'),r=s.openCursor();r.onsuccess=()=>{const c=r.result;if(c){if(c.value.deleted)c.update({...c.value,deleted:false});c.continue()}};tx.oncomplete=()=>{closeSheet();showHint('Removed imports restored. Open the library to see them.')}};grid.after(b)}
+async function setImportDeleted(asset,deleted){const db=await importLibrary;await new Promise((resolve,reject)=>{const tx=db.transaction('assets','readwrite');tx.objectStore('assets').put({...asset,deleted});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+async function appendSavedImports(kind,grid){try{const db=await importLibrary;if(!db)return;const assets=await new Promise((resolve,reject)=>{const r=db.transaction('assets').objectStore('assets').getAll();r.onsuccess=()=>resolve(r.result.filter(x=>x.kind===kind&&!x.deleted));r.onerror=()=>reject(r.error)});if(!grid.isConnected)return;for(const asset of assets){const b=document.createElement('button'),img=new Image();img.src=asset.src;img.alt='';b.className='saved-import';b.setAttribute('aria-label','Saved '+kind+': '+asset.name);b.title=asset.name;b.append(img);b.onclick=async()=>{try{await img.decode();if(kind==='sticker'){pendingSticker=img;state.tool=eng.tool='sticker';buildTools();say('Your sticker');showHint('Tap the paper to place your sticker!')}else{eng.drawPhoto(img)}closeSheet()}catch{showHint('Could not open this saved image.')}};const wrap=document.createElement('div');wrap.className='import-item';const remove=document.createElement('button');remove.className='remove-import';remove.textContent='×';remove.setAttribute('aria-label','Remove '+asset.name);remove.title='Remove from library';remove.onclick=async()=>{try{await setImportDeleted(asset,true);wrap.remove();const restore=document.createElement('button');restore.className='mbtn restore-import';restore.textContent='Restore '+asset.name;restore.onclick=async()=>{await setImportDeleted(asset,false);restore.replaceWith(wrap)};grid.after(restore)}catch{showHint('Could not remove this image.')}};wrap.append(b,remove);grid.append(wrap)}}catch{showHint('Saved imports are unavailable in this browser.')}}
 async function importPicture(e){const file=e.target.files?.[0];e.target.value='';if(!file)return;if(!/^image\/(png|jpeg|webp)$/.test(file.type)||file.size>20*1024*1024){showHint('Choose a PNG, JPG or WebP smaller than 20 MB.');return}const url=URL.createObjectURL(file);try{const im=new Image();im.src=url;await im.decode();if(im.naturalWidth*im.naturalHeight>40000000)throw new Error('Too large');const c=document.createElement('canvas'),scale=Math.min(1,2048/Math.max(im.naturalWidth,im.naturalHeight));c.width=Math.max(1,Math.round(im.naturalWidth*scale));c.height=Math.max(1,Math.round(im.naturalHeight*scale));c.getContext('2d').drawImage(im,0,0,c.width,c.height);const src=c.toDataURL('image/png');await saveImported('picture',file.name,src);eng.drawPhoto(im);showHint('Picture saved! Find it in Pictures next time.')}catch{showHint('Could not save this import. Try a smaller image or check browser storage.')}finally{URL.revokeObjectURL(url)}}
-const artPickerBeforeLibrary=openArtPicker;openArtPicker=function(){artPickerBeforeLibrary();appendSavedImports('picture',$('#ag'))};$('#btnArt').onclick=openArtPicker;
+const artPickerBeforeLibrary=openArtPicker;openArtPicker=function(){artPickerBeforeLibrary();appendSavedImports('picture',$('#ag'));addRestoreLibrary($('#ag'))};$('#btnArt').onclick=openArtPicker;
 const importStickerInput=document.createElement('input');importStickerInput.type='file';importStickerInput.accept='image/png,image/jpeg,image/webp';importStickerInput.hidden=true;importStickerInput.id='importStickerFile';document.body.append(importStickerInput);
-const pickerBeforeImport=openStickerPicker;openStickerPicker=function(){pickerBeforeImport();const b=document.createElement('button');b.className='mbtn';b.id='importSticker';b.textContent='＋ Import stickers';b.onclick=()=>importStickerInput.click();$('#sg').before(b);appendSavedImports('sticker',$('#sg'))};
+const pickerBeforeImport=openStickerPicker;openStickerPicker=function(){pickerBeforeImport();const b=document.createElement('button');b.className='mbtn';b.id='importSticker';b.textContent='＋ Import stickers';b.onclick=()=>importStickerInput.click();$('#sg').before(b);appendSavedImports('sticker',$('#sg'));addRestoreLibrary($('#sg'))};
 importStickerInput.onchange=async()=>{const file=importStickerInput.files[0];importStickerInput.value='';if(!file)return;if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>20*1024*1024){showHint('Choose a PNG, JPG or WebP smaller than 20 MB.');return}const url=URL.createObjectURL(file);try{const original=new Image();original.src=url;await original.decode();if(!original.naturalWidth||original.naturalWidth*original.naturalHeight>40000000)throw new Error('Image too large');const c=document.createElement('canvas');c.width=c.height=512;const ctx=c.getContext('2d'),scale=512/Math.max(original.naturalWidth,original.naturalHeight),w=original.naturalWidth*scale,h=original.naturalHeight*scale;ctx.drawImage(original,(512-w)/2,(512-h)/2,w,h);const im=new Image();im.src=c.toDataURL('image/png');await im.decode();await saveImported('sticker',file.name,im.src);pendingSticker=im;state.tool=eng.tool='sticker';closeSheet();buildTools();say('Your sticker');showHint('Tap the paper to place your sticker!')}catch{showHint('Could not load this image. Please try a smaller PNG, JPG or WebP.')}finally{URL.revokeObjectURL(url)}};
 const toolSizes={pencil:1,brush:1,eraser:1},sizeValues={pencil:[30,64,112],brush:[30,64,120],eraser:[36,76,140]};
 const sizeNames=['Small','Medium','Large'];
 const sizeButton=document.createElement('div');sizeButton.id='btnSize';sizeButton.setAttribute('role','group');
-$('#topbar').insertBefore(sizeButton,$('#btnSound'));
+$('.palette-stack').prepend(sizeButton);
 function updateSize(){const sizes=sizeValues[state.tool];sizeButton.hidden=!sizes;if(!sizes)return;eng.size=sizes[toolSizes[state.tool]];sizeButton.replaceChildren();sizeButton.setAttribute('aria-label',TOOL_LABELS[state.tool]+' size');sizeNames.forEach((name,i)=>{const b=document.createElement('button');b.className='inline-size';b.setAttribute('aria-label',name+' size');b.setAttribute('aria-pressed',toolSizes[state.tool]===i);b.title=name;b.innerHTML='<i style="width:'+([7,14,22][i])+'px;height:'+([7,14,22][i])+'px" aria-hidden="true"></i><span>'+name+'</span>';b.onclick=()=>{toolSizes[state.tool]=i;updateSize();say(name)};sizeButton.append(b)})}
 const buildToolsBeforeSizes=buildTools;buildTools=function(){buildToolsBeforeSizes();updateSize()};
 
