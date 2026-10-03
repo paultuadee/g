@@ -103,7 +103,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#BFE0F
 .row,#sheetBox{touch-action:pan-x pan-y}#sheetBox button{touch-action:manipulation}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-<link rel="stylesheet" href="sticker-play.css?v=12">
+<link rel="stylesheet" href="sticker-play.css?v=14">
 </head>
 <body>
 <div id="app">
@@ -1047,6 +1047,7 @@ class Engine {
     const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height;
     const s = Math.min(W / iw, H / ih);
     const w = iw * s, h = ih * s;
+    c.imageSmoothingEnabled=true;c.imageSmoothingQuality="high";
     c.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
     this._dirty = true; this.onChange();
   }
@@ -1167,23 +1168,36 @@ const stickers = [];
 let selected = null;
 const state = { tool: 'pencil', color: COLORS[0], ink: 0, page: 0, kid: true };
 
+let viewZoom=1,panMode=false;
 function newDocument(width,height){
   if(!width||!height){const portrait=matchMedia('(orientation:portrait)').matches;width=portrait?1200:1600;height=portrait?1600:960;}
-  const scale=Math.min(1,1600/Math.max(width,height));W=Math.max(1,Math.round(width*scale));H=Math.max(1,Math.round(height*scale));
+  const scale=1600/Math.max(width,height);W=Math.max(1,Math.round(width*scale));H=Math.max(1,Math.round(height*scale));
   stickers.splice(0).forEach(s=>s.el.remove());deselect();pendingSticker=null;
   for(const c of Object.values(eng.cv)){c.width=W;c.height=H;}
-  eng._wall=null;eng._wallD=null;eng._band=null;eng._smartMask=null;eng.clearAll();layout();
+  eng._wall=null;eng._wallD=null;eng._band=null;eng._smartMask=null;eng.clearAll();viewZoom=1;panMode=false;layout();stage.scrollTo(0,0);updateViewControls();
 }
 // ---------------------------------------------------------------- ขนาดผืนผ้าใบ
 function layout() {
   const pad = 14;
   const aw = stage.clientWidth - pad * 2, ah = stage.clientHeight - pad * 2;
-  const s = Math.min(aw / W, ah / H);
+  const s = Math.min(aw / W, ah / H)*viewZoom;
   card.style.width = Math.floor(W * s) + 'px';
   card.style.height = Math.floor(H * s) + 'px';
+  paperSpace.style.width=Math.max(stage.clientWidth,Math.floor(W*s)+28)+'px';paperSpace.style.height=Math.max(stage.clientHeight,Math.floor(H*s)+28)+'px';
   stickers.forEach(place);
   placeKill();
 }
+const paperSpace=document.createElement('div');paperSpace.id='paperSpace';stage.append(paperSpace);paperSpace.append(card);
+const viewControls=document.createElement('div');viewControls.id='viewControls';viewControls.innerHTML='<button id="viewToggle" aria-label="Zoom and move picture" aria-expanded="false">⌕ <span>View</span></button><div id="viewPanel" hidden><button id="zoomOut" aria-label="Zoom out">−</button><output id="zoomValue">100%</output><button id="zoomIn" aria-label="Zoom in">+</button><button id="zoomFit">Fit</button><button id="panPicture" aria-pressed="false">Move</button></div>';$('#app').append(viewControls);
+function updateViewControls(){if(!$('#zoomValue'))return;$('#zoomValue').textContent=Math.round(viewZoom*100)+'%';$('#zoomOut').disabled=viewZoom<=1;$('#zoomIn').disabled=viewZoom>=4;$('#panPicture').disabled=viewZoom<=1;$('#panPicture').setAttribute('aria-pressed',panMode);input.style.cursor=panMode?'grab':'crosshair';}
+function setViewZoom(value){if(drawing)return;const old=viewZoom,cx=(stage.scrollLeft+stage.clientWidth/2)/paperSpace.clientWidth,cy=(stage.scrollTop+stage.clientHeight/2)/paperSpace.clientHeight;viewZoom=Math.max(1,Math.min(4,value));if(viewZoom===1)panMode=false;layout();stage.scrollLeft=cx*paperSpace.clientWidth-stage.clientWidth/2;stage.scrollTop=cy*paperSpace.clientHeight-stage.clientHeight/2;updateViewControls();}
+$('#viewToggle').onclick=()=>{const panel=$('#viewPanel');panel.hidden=!panel.hidden;$('#viewToggle').setAttribute('aria-expanded',!panel.hidden)};
+$('#zoomIn').onclick=()=>setViewZoom(viewZoom+.5);$('#zoomOut').onclick=()=>setViewZoom(viewZoom-.5);$('#zoomFit').onclick=()=>setViewZoom(1);$('#panPicture').onclick=()=>{if(drawing)return;panMode=!panMode;updateViewControls();if(panMode)showHint('Drag to move. Tap Move again to paint.')};
+let panPointer=null;input.addEventListener('pointerdown',e=>{if(!panMode)return;e.preventDefault();e.stopImmediatePropagation();panPointer={id:e.pointerId,x:e.clientX,y:e.clientY,left:stage.scrollLeft,top:stage.scrollTop};input.setPointerCapture(e.pointerId)},true);
+input.addEventListener('pointermove',e=>{if(!panPointer||e.pointerId!==panPointer.id)return;e.preventDefault();e.stopImmediatePropagation();stage.scrollLeft=panPointer.left+panPointer.x-e.clientX;stage.scrollTop=panPointer.top+panPointer.y-e.clientY},true);
+for(const type of ['pointerup','pointercancel','lostpointercapture'])input.addEventListener(type,e=>{if(!panPointer||e.pointerId!==panPointer.id)return;e.stopImmediatePropagation();panPointer=null},true);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){panMode=false;$('#viewPanel').hidden=true;$('#viewToggle').setAttribute('aria-expanded',false);updateViewControls()}});updateViewControls();
+
 addEventListener('resize', layout);
 addEventListener('orientationchange', () => setTimeout(layout, 250));
 
@@ -1577,7 +1591,7 @@ $('#btnDemo').onclick=()=>{sheet('<button class="close-sheet" aria-label="Close 
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
 
 // Sticker Play: preserve the original line art and add region-locked drawing.
-const STICKER_VERSION='sticker-play-v13.0';
+const STICKER_VERSION='sticker-play-v14.0';
 const TOOL_LABELS={pencil:'Pencil',brush:'Brush',eraser:'Eraser',bucket:'Fill',sticker:'Stickers'};
 let pendingSticker=null, hintTimer;
 function showHint(message){const e=$('#hint');e.textContent=message;e.classList.add('on');clearTimeout(hintTimer);hintTimer=setTimeout(()=>e.classList.remove('on'),2600)}
@@ -1713,7 +1727,7 @@ async function saveImported(kind,name,src){const db=await importLibrary;if(!db)t
 function addRestoreLibrary(grid){const b=document.createElement('button');b.className='mbtn';b.textContent='Restore removed imports';b.onclick=async()=>{const db=await importLibrary;if(!db)return;const tx=db.transaction('assets','readwrite'),s=tx.objectStore('assets'),r=s.openCursor();r.onsuccess=()=>{const c=r.result;if(c){if(c.value.deleted)c.update({...c.value,deleted:false});c.continue()}};tx.oncomplete=()=>{closeSheet();showHint('Removed imports restored. Open the library to see them.')}};grid.after(b)}
 async function setImportDeleted(asset,deleted){const db=await importLibrary;await new Promise((resolve,reject)=>{const tx=db.transaction('assets','readwrite');tx.objectStore('assets').put({...asset,deleted});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
 async function appendSavedImports(kind,grid){try{const db=await importLibrary;if(!db)return;const assets=await new Promise((resolve,reject)=>{const r=db.transaction('assets').objectStore('assets').getAll();r.onsuccess=()=>resolve(r.result.filter(x=>x.kind===kind&&!x.deleted));r.onerror=()=>reject(r.error)});if(!grid.isConnected)return;for(const asset of assets){const b=document.createElement('button'),img=new Image();img.src=asset.src;img.alt='';b.className='saved-import';b.setAttribute('aria-label','Saved '+kind+': '+asset.name);b.title=asset.name;b.append(img);b.onclick=async()=>{try{await img.decode();if(kind==='sticker'){pendingSticker=img;state.tool=eng.tool='sticker';buildTools();say('Your sticker');showHint('Tap the paper to place your sticker!')}else{eng.drawPhoto(img)}closeSheet()}catch{showHint('Could not open this saved image.')}};const wrap=document.createElement('div');wrap.className='import-item';const remove=document.createElement('button');remove.className='remove-import';remove.textContent='×';remove.setAttribute('aria-label','Remove '+asset.name);remove.title='Remove from library';remove.onclick=async()=>{try{await setImportDeleted(asset,true);wrap.remove();const restore=document.createElement('button');restore.className='mbtn restore-import';restore.textContent='Restore '+asset.name;restore.onclick=async()=>{await setImportDeleted(asset,false);restore.replaceWith(wrap)};grid.after(restore)}catch{showHint('Could not remove this image.')}};wrap.append(b,remove);grid.append(wrap)}}catch{showHint('Saved imports are unavailable in this browser.')}}
-async function importPicture(e){const file=e.target.files?.[0];e.target.value='';if(!file)return;if(!/^image\/(png|jpeg|webp)$/.test(file.type)||file.size>20*1024*1024){showHint('Choose a PNG, JPG or WebP smaller than 20 MB.');return}const url=URL.createObjectURL(file);try{const im=new Image();im.src=url;await im.decode();if(im.naturalWidth*im.naturalHeight>40000000)throw new Error('Too large');const c=document.createElement('canvas'),scale=Math.min(1,2048/Math.max(im.naturalWidth,im.naturalHeight));c.width=Math.max(1,Math.round(im.naturalWidth*scale));c.height=Math.max(1,Math.round(im.naturalHeight*scale));c.getContext('2d').drawImage(im,0,0,c.width,c.height);const src=c.toDataURL('image/png');await saveImported('picture',file.name,src);eng.drawPhoto(im);showHint('Picture saved! Find it in Pictures next time.')}catch{showHint('Could not save this import. Try a smaller image or check browser storage.')}finally{URL.revokeObjectURL(url)}}
+async function importPicture(e){const file=e.target.files?.[0];e.target.value='';if(!file)return;if(!/^image\/(png|jpeg|webp)$/.test(file.type)||file.size>20*1024*1024){showHint('Choose a PNG, JPG or WebP smaller than 20 MB.');return}const url=URL.createObjectURL(file);try{const im=new Image();im.src=url;await im.decode();if(im.naturalWidth*im.naturalHeight>40000000)throw new Error('Too large');const c=document.createElement('canvas'),scale=Math.min(1,2048/Math.max(im.naturalWidth,im.naturalHeight));c.width=Math.max(1,Math.round(im.naturalWidth*scale));c.height=Math.max(1,Math.round(im.naturalHeight*scale));const resample=c.getContext('2d');resample.imageSmoothingQuality='high';resample.drawImage(im,0,0,c.width,c.height);const src=c.toDataURL('image/png');await saveImported('picture',file.name,src);eng.drawPhoto(im);showHint('Picture saved! Find it in Pictures next time.')}catch{showHint('Could not save this import. Try a smaller image or check browser storage.')}finally{URL.revokeObjectURL(url)}}
 const artPickerBeforeLibrary=openArtPicker;openArtPicker=function(){artPickerBeforeLibrary();appendSavedImports('picture',$('#ag'));addRestoreLibrary($('#ag'))};$('#btnArt').onclick=openArtPicker;
 const importStickerInput=document.createElement('input');importStickerInput.type='file';importStickerInput.accept='image/png,image/jpeg,image/webp';importStickerInput.hidden=true;importStickerInput.id='importStickerFile';document.body.append(importStickerInput);
 const pickerBeforeImport=openStickerPicker;openStickerPicker=function(){pickerBeforeImport();const b=document.createElement('button');b.className='mbtn';b.id='importSticker';b.textContent='＋ Import stickers';b.onclick=()=>importStickerInput.click();$('#sg').before(b);appendSavedImports('sticker',$('#sg'));addRestoreLibrary($('#sg'))};

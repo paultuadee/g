@@ -20,3 +20,5 @@ Publish the root of main with GitHub Pages. No build or API key is required. Ser
 Chrome tests cover portrait layouts, import proportions, clean new documents, recoverable import removal, ten full-canvas undo/redo steps, pencil clipping, free brush strokes, texture fill, stickers and offline loading. Physical iPad/Safari testing remains device-dependent.
 
 English vocabulary uses generated Dylan preset audio (Higgsfield Seed Audio), bundled locally for consistent speech and offline playback. No API key or runtime speech service is needed. Sound off and page hiding stop narration; rapid selections replace the previous word.
+
+v14: imported documents use a consistent 1600-pixel longest side even for tiny sources, keeping brush sizes usable. High-quality image resampling and 100–400% view zoom with explicit Move mode. Zoom never resamples the drawing or clears undo history. Low-resolution originals cannot regain missing detail through enlargement.
